@@ -1,0 +1,36 @@
+.square {
+    height:125px;
+    width:125px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.square-white {
+    background-color: white;
+}
+.square-green {
+    background-color: lightgreen;
+}
+
+body {
+    background-color: grey;
+}
+
+.Board {
+    display: grid;
+    grid-template-columns: repeat(8,125px );
+    grid-template-rows: repeat(8,125px );
+}
+
+img {
+
+}
+
+.draging {
+    background-color: gray;
+}
+
+.piece {
+    cursor: pointer;
+}

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Home</title>
+    <link rel="stylesheet" href="{% static 'css/chess-style.css' %}">
+</head>
+<body>
+    <div class="Board" id="Board">
+    </div>
+    <button id="setupBoard">Setup Board</button>
+    <script src="{% static 'js/chess.js' %}"></script>
+</body>
+</html>

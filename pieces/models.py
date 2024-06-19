@@ -14,16 +14,28 @@ class Piece:
     def is_legit_move(self):
         pass
 
-    def move(self, board, source, dest):
-        if self.is_legit_move(board=board, source=source, dest=dest):
+    def move(self, board, source, dest, log):
+        r_obj = self.is_legit_move(board=board, source=source, dest=dest, log=log)
+        typ = type(r_obj)
+        if typ == bool and r_obj is True:
+            log.add_log(source=source, dest=dest, piece=self)
             board.move_piece(start=source, stop=dest, piece=self)
+            return True
+        elif typ is Queen or typ is Bishop or typ is Knight or typ is Rook:
+            log.add_log(source=source, dest=dest, piece=self)
+            board.move_piece(start=source, stop=dest, piece=r_obj)
+            return True
+        return False
+
+    def __str__(self):
+        pass
 
 
 class Pawn(Piece):
     def __init__(self, color, url):
         super().__init__(color, url)
 
-    def is_legit_move(self, source, dest, board):
+    def is_legit_move(self, source, dest, board, log, check_promotion= True):
         board = board.board
         y1, x1 = source
         y2, x2 = dest
@@ -33,39 +45,45 @@ class Pawn(Piece):
         else:
             direction = 1
             start_row = 1
-
         if x1 == x2 and y2 == y1 + direction and board[y2][x2].is_empty():
+            if check_promotion:
+                cbp = self.can_be_promoted(dest=dest, board=board, log=log)
+                if cbp:
+                    return cbp
             return True
-        if y1 == start_row and y2 == y1 + direction*2 and board[y2][x2].is_empty() and board[y1 + direction][x1]:
+        if y1 == start_row and y2 == y1 + direction * 2 and board[y2][x2].is_empty() and board[y1 + direction][x1]:
+            if check_promotion:
+                cbp = self.can_be_promoted(dest=dest, board=board, log=log)
+                if cbp:
+                    return cbp
             return True
-        if x1 + 1 == x2 or x1 - 1 == x2 and y2 == y1 + direction and not board[y2][x2].is_empty():
-            return True
+        if not board[y2][x2].is_empty(): #y1,x3 -> y7,x4
+            if ((x1 + 1 == x2 or x1 - 1 == x2) and y2 == y1 + direction) and (board[y2][x2].get_piece().get_color() != board[y1][x1].get_piece().get_color()):
+                log.add_capture(piece=board[y2][x2].get_piece())
+                if check_promotion:
+                    cbp = self.can_be_promoted(dest=dest, board=board, log=log)
+                    if cbp:
+                        return cbp
+                return True
         return False
 
-    def can_be_promoted(self, dest, piece_choice, board):
-        x, y = dest
-        if self.color == 'white':
-            if x == 7:
-                if piece_choice == 'queen':
-                    board[x][y] = Queen(color=self.get_color(), url='queen_url')
-                elif piece_choice == 'knight':
-                    board[x][y] = Knight(color=self.get_color(), url='knight_url')
-                elif piece_choice == 'bishop':
-                    board[x][y] = Bishop(color=self.get_color(), url='bishop_url')
-                elif piece_choice == 'rook':
-                    board[x][y] = Rook(color=self.get_color(), url='rook_url')
-            return True
-        else:
-            if x == 0:
-                if piece_choice == 'queen':
-                    board[x][y] = Queen(color=self.get_color(), url='queen_url')
-                elif piece_choice == 'knight':
-                    board[x][y] = Knight(color=self.get_color(), url='knight_url')
-                elif piece_choice == 'bishop':
-                    board[x][y] = Bishop(color=self.get_color(), url='bishop_url')
-                elif piece_choice == 'rook':
-                    board[x][y] = Rook(color=self.get_color(), url='rook_url')
-            return True
+    def can_be_promoted(self, dest, board, log):
+        y, x = dest
+        if (y == 7 and self.get_color() == 'black') or (y == 0 and self.get_color() == 'white'):
+            piece_choice = input('Enter Piece Choice: ')
+            if piece_choice == 'queen':
+                p = Queen(color=self.get_color(), url=f'images/{self.get_color()}-queen.png')
+            elif piece_choice == 'knight':
+                p = Knight(color=self.get_color(), url=f'images/{self.get_color()}-knight.png')
+            elif piece_choice == 'bishop':
+                p = Bishop(color=self.get_color(), url=f'images/{self.get_color()}-bishop.png')
+            elif piece_choice == 'rook':
+                p = Rook(color=self.get_color(), url=f'images/{self.get_color()}-rook.png')
+            else:
+                return False
+            log.add_promotion(piece=board[y][x].get_piece(), cord=dest, new_piece=p)
+            return p
+        return False
 
     def can_en_passent(self):
         pass
@@ -78,9 +96,10 @@ class Queen(Piece):
     def __init__(self, color, url):
         super().__init__(color, url)
 
-    def is_legit_move(self, source, dest, board):
-        x1, y1 = source
-        x2, y2 = dest
+    def is_legit_move(self, source, dest, board, log):
+        board = board.board
+        y1, x1 = source
+        y2, x2 = dest
         step_y = 0
         step_x = 0
         if x2 > x1:
@@ -91,21 +110,24 @@ class Queen(Piece):
             step_x = 0
 
         if y2 > y1:
-            step_x = 1
+            step_y = 1
         elif y1 > y2:
             step_y = -1
         else:
             step_y = 0
         check_x = x1 + step_x
         check_y = y1 + step_y
-        if x1 - x2 != 0 and y1 - y2 == 0 or x1 - x2 == 0 and y1 - y2 != 0 or x2 - x1 / y2 - y1 == 1:
+        if (x1 - x2 != 0 and y1 - y2 == 0) or (x1 - x2 == 0 and y1 - y2 != 0) or (abs(x2 - x1) == abs(y2 - y1)):
             while check_x != x2 or check_y != y2:
-                if not board[check_x][check_y].is_empty():
+                if not board[check_y][check_x].is_empty():
                     return False
                 check_x += step_x
                 check_y += step_y
-            if board[x2][y2].get_piece().get_color() == board[x1][y1].get_piece().get_color():
-                return False
+            if not board[y2][x2].is_empty():
+                if board[y2][x2].get_piece().get_color() == board[y1][x1].get_piece().get_color():
+                    return False
+                else:
+                    log.add_capture(piece=board[y2][x2].get_piece())
             return True
         return False
 
@@ -117,7 +139,7 @@ class Rook(Piece):
     def __init__(self, color, url):
         super().__init__(color, url)
 
-    def is_legit_move(self, source, dest, board):
+    def is_legit_move(self, source, dest, board, log):
         board = board.board
         step_y = 0
         step_x = 0
@@ -139,7 +161,6 @@ class Rook(Piece):
             step_y = 0
         check_x = x1 + step_x
         check_y = y1 + step_y
-        print(x1,x2, step_x, y1, y2, step_y, check_x, check_y)
         if x1 - x2 != 0 and y1 - y2 == 0 or x1 - x2 == 0 and y1 - y2 != 0:
             while check_x != x2 or check_y != y2:
                 if not board[check_y][check_x].is_empty():
@@ -149,6 +170,8 @@ class Rook(Piece):
             if not board[y2][x2].is_empty():
                 if board[y2][x2].get_piece().get_color() == board[y1][x1].get_piece().get_color():
                     return False
+                else:
+                    log.add_capture(piece=board[y2][x2].get_piece())
             return True
         return False
 
@@ -160,9 +183,12 @@ class Bishop(Piece):
     def __init__(self, color, url):
         super().__init__(color, url)
 
-    def is_legit_move(self, source, dest, board):
-        x1, y1 = source
-        x2, y2 = dest
+    def is_legit_move(self, source, dest, board, log):
+        board = board.board
+        y1, x1 = source
+        y2, x2 = dest
+        step_x = 0
+        step_y = 0
         if x2 > x1:
             step_x = 1
         elif x1 > x2:
@@ -171,21 +197,24 @@ class Bishop(Piece):
             step_x = 0
 
         if y2 > y1:
-            step_x = 1
+            step_y = 1
         elif y1 > y2:
             step_y = -1
         else:
             step_y = 0
         check_x = x1 + step_x
         check_y = y1 + step_y
-        if x2 - x1 / y2 - y1 == 1:
+        if abs(x2 - x1) == abs(y2 - y1):
             while check_x != x2 or check_y != y2:
-                if not board[check_x][check_y].is_empty():
+                if not board[check_y][check_x].is_empty():
                     return False
                 check_x += step_x
                 check_y += step_y
-            if board[x2][y2].get_piece().get_color() == board[x1][y1].get_piece().get_color():
-                return False
+            if not board[y2][x2].is_empty():
+                if board[y2][x2].get_piece().get_color() == board[y1][x1].get_piece().get_color():
+                    return False
+                else:
+                    log.add_capture(piece=board[y2][x2].get_piece())
             return True
         return False
 
@@ -197,13 +226,17 @@ class King(Piece):
     def __init__(self, color, url):
         super().__init__(color, url)
 
-    def is_legit_move(self, source, dest, board):
-        x1, y1 = source
-        x2, y2 = dest
+    def is_legit_move(self, source, dest, board, log):
+        board = board.board
+        y1, x1 = source
+        y2, x2 = dest
         if (abs(x1 - x2) == 1 and abs(y1 - y2) == 0) or (abs(y1 - y2) == 1 and abs(x1 - x2) == 0) or (
                 abs(x1 - x2) == 1 and abs(y1 - y2) == 1):
-            if board[x2][y2].get_piece().get_color() == board[x1][y1].get_piece().get_color():
-                return False
+            if not board[y2][x2].is_empty():
+                if board[y2][x2].get_piece().get_color() == board[y1][x1].get_piece().get_color():
+                    return False
+                else:
+                    log.add_capture(piece=board[y2][x2].get_piece())
             return True
         return False
 
@@ -218,13 +251,15 @@ class Knight(Piece):
     def __init__(self, color, url):
         super().__init__(color, url)
 
-    def is_legit_move(self, source, dest, board):
-        x1, y1 = source
-        x2, y2 = dest
+    def is_legit_move(self, source, dest, board, log):
+        y1, x1 = source
+        y2, x2 = dest
         if (abs(x1 - x2) == 2 and abs(y1 - y2) == 1) or (abs(x1 - x2) == 1 and abs(y1 - y2) == 2):
-            if not board.board[x2][y2].is_empty():
-                if board.board[x2][y2].get_piece().get_color() == self.get_color():
+            if not board.board[y2][x2].is_empty():
+                if board.board[y2][x2].get_piece().get_color() == self.get_color():
                     return False
+                else:
+                    log.add_capture(piece=board.board[y2][x2].get_piece())
             return True
         return False
 
@@ -235,12 +270,10 @@ class Knight(Piece):
 class Board:
     def __init__(self):
         self.board = [[Square() for _ in range(8)] for _ in range(8)]
-        print(self.board)
         for i in range(8):
             for j in range(8):
                 s = Square()
                 self.board[i][j] = s
-                print(id(self.board[i][j]))
 
     def initialize_board(self):
         for x in range(8):
@@ -294,7 +327,7 @@ class Board:
 
         self.board[0][4].set_piece(b_king)
         self.board[7][4].set_piece(w_king)
-        print(self.board)
+        return w_king, b_king
 
     def print_board(self):
         print('  -', end='')
@@ -324,7 +357,7 @@ class Board:
 
     def has_piece(self, cord, piece):
         x, y = cord
-        if board[y][x].get_piece() == piece:
+        if self.board[y][x].get_piece() == piece:
             return True
         return False
 
@@ -382,29 +415,24 @@ def convert_input(move):
     return rank, file
 
 
-# board = Board()
-# board.initialize_board()
-# board.print_board()
-# print(board.board[0][1].get_piece())
-# print(board.board[0][1].get_piece().is_legit_move(source=[0, 1], dest=[2, 2], board=board))
-# print(board.board[0][2].get_piece())
-#
-# board.board[0][1].get_piece().move(board=board, source=[0, 1], dest=[2, 2])
-# board.print_board()
-#
-# print(convert_input('c8'))
-
-
 class Game:
     def __init__(self):
         self.board = Board()
+        self.log = BoardLog()
+        self.pw = None
+        self.pb = None
+        self.turn = None
+        self.white_king = None
+        self.black_king = None
+        self.wkp = None
+        self.bkp = None
+        self.checked_king = None
 
     def start_game(self):
-        self.board.initialize_board()
+        self.white_king, self.black_king = self.board.initialize_board()
 
     def print_board(self):
         self.board.print_board()
-
 
     def convert_input(self, move):
         file, rank = move[0], 8 - int(move[1])
@@ -418,19 +446,126 @@ class Game:
         return self.convert_input(move)
 
     def move_piece(self):
+        move_color = self.turn
         origin, dest = self.get_input()
-        if self.board.board[origin[0]][origin[1]].get_piece().is_legit_move(source=origin, dest=dest, board=self.board):
-            self.board.board[origin[0]][origin[1]].get_piece().move(board=self.board, source=origin, dest=dest)
+        color = self.board.board[origin[0]][origin[1]].get_piece().get_color()
+        print(move_color, color, 'COLOR')
+        if move_color == color:
+            if self.board.board[origin[0]][origin[1]].get_piece().move(board=self.board, source=origin, dest=dest, log=self.log):
+                self.switch_turn()
+                return True
+            else:
+                print('MOVE NOT VALID TRY AGAIN!!!')
+                return False
         else:
-            print('MOVE NOT VALID!!!')
-        self.print_board()
+            print('WRONG COLOR TRY AGAIN!!!')
+            return False
+
+    def player_setup(self):
+        pw = input('Enter White Player Name: ')
+        pb = input('Enter Black Player Name: ')
+        turn = input('Enter the name of 1st mover: ')
+        if turn == pw:
+            self.turn = 'white'
+        else:
+            self.turn = 'black'
+
+    def get_king_pos(self):
+        if self.wkp is None and self.bkp is None:
+            self.wkp, self.bkp = (7, 4), (0, 4)
+        else:
+            log_check = self.log.logs[-1]
+            if log_check[0] == self.white_king:
+                self.wkp = log_check[2]
+            elif log_check[0] == self.black_king:
+                self.bkp = log_check[2]
+
+        print('WHITE KING POS: ', self.wkp, 'BLACK KING POS: ', self.bkp)
+
+    def determine_check(self, target_king):
+        for x in range(8):
+            for y in range(8):
+                piece = self.board.board[x][y].get_piece()
+                if piece is not None:
+                    if type(piece) is not Pawn:
+                        if piece.get_color() == 'white':
+                            if piece.is_legit_move(source=(x, y), dest=target_king, board=self.board, log=self.log):
+                                return 'black'
+                        else:
+                            if piece.is_legit_move(source=(x, y), dest=target_king, board=self.board, log=self.log):
+                                return 'white'
+                    else:
+                        if piece.get_color() == 'white':
+                            if piece.is_legit_move(source=(x, y), dest=target_king, board=self.board, log=self.log, check_promotion=False):
+                                return 'black'
+                        else:
+                            if piece.is_legit_move(source=(x, y), dest=target_king, board=self.board, log=self.log, check_promotion=False):
+                                return 'white'
+        return ''
+
+    def is_checkmate(self, player_turn):
+        print(player_turn, 'PLAYER TURN')
+        pieces = []
+        for x in range(8):
+            for y in range(8):
+                piece = self.board.board[x][y].get_piece()
+                if piece and piece.get_color() == self.turn:
+                    pieces.append(piece)
+                    legal_moves = self.generate_legal_moves(piece=piece, piece_pos=(x,y))
+                    print(legal_moves)
+                    for s, d in legal_moves:
+                        x2, y2 = d
+                        captured_piece = self.board.board[x2][y2].get_piece()
+                        self.board.move_piece(start=s, stop=d, piece=piece)
+                        is_check = self.determine_check(target_king= self.bkp if self.turn == 'white' else self.wkp)
+                        if not is_check:
+                            self.board.move_piece(start=d,stop=s, piece=piece)
+                            if captured_piece:
+                                self.board.board[x2][y2].set_piece(piece=captured_piece)
+                            print('FalseEEEE')
+                            return False
+                        else:
+                            self.board.move_piece(start=d, stop=s, piece=piece)
+                            if captured_piece:
+                                self.board.board[x2][y2].set_piece(piece=captured_piece)
+        return True
+
+    def generate_legal_moves(self, piece, piece_pos):
+        l_moves = []
+        for x in range(8):
+            for y in range(8):
+                if piece.is_legit_move(dest=(x,y), source=piece_pos, board=self.board, log=self.log):
+                    l_moves.append((piece_pos, (x,y)))
+        return l_moves
+
+    def switch_turn(self):
+        if self.turn == 'white':
+            self.turn = 'black'
+        else:
+            self.turn = 'white'
 
     def run_game(self):
         i = 0
-        game.start_game()
+        self.start_game()
+        self.player_setup()
         while i != 1:
-            game.print_board()
-            game.move_piece()
+            self.print_board()
+            if self.move_piece():
+                self.get_king_pos()
+                if self.turn:
+                    target_king = self.bkp
+                else:
+                    target_king = self.wkp
+                is_check = self.determine_check(target_king)
+                if is_check:
+                    print(f'{is_check} King In Check!!!')
+                    if self.is_checkmate(player_turn=self.turn):
+                        if self.turn == 'white':
+                            turn = 'black'
+                        else:
+                            turn = 'white'
+                        print(f'Game Over!!! PLAYER {turn} WINS!!!')
+
 
 game = Game()
 game.run_game()

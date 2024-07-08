@@ -1,7 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
     const setupBoard = document.getElementById('setupBoard');
-
+    function startGame() {
+    const response = fetch('/start_game/', {
+    method:'POST', headers:{'Content-Type': 'application/json'}});
+    const data = response.json();
+    console.log(data);
+    }
     function findPiece(x, y) {
         // Simplified for demonstration
         if (x === 1 || x === 6) return 'pawn';  // Pawns
@@ -23,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getUrl(color, pieceType) {
         if (!pieceType) return '';
-        return `images/${color}-${pieceType.toLowerCase()}.png`;
+        return `/static/images/${color}-${pieceType.toLowerCase()}.png`;
     }
 
     function initializeBoard() {
@@ -41,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const color = getColor(i);
                 const pieceType = findPiece(i, j);
                 let url = getUrl(color, pieceType);
-                url = "{% static "+"'"+url+"'"+" %}"
+//                url = "{% static "+"'"+url+"'"+" %}"
                 console.log(url)
                 if (pieceType) {
                     let image = document.createElement('img');
@@ -69,6 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+//    function makeMove(row, col){
+//
+//    }
+
+
     function handleDragStart(event) {
         event.dataTransfer.setData("text/plain", event.target.id);
     }
@@ -78,6 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDrop(event) {
+        console.log(event)
+        console.log('EVENT')
         event.preventDefault();
         const id = event.dataTransfer.getData('text/plain');
         const draggableElement = document.getElementById(id);
@@ -91,10 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
         dropTarget.appendChild(draggableElement);
     }
 
-    setupBoard.addEventListener('click', () => {
+    setupBoard.addEventListener('click', async () => {
         // Clear existing board to reinitialize
         board.innerHTML = '';
+        await startGame();
         initializeBoard();
+        console.log('bean');
     });
 
 });

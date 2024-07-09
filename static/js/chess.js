@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
     const setupBoard = document.getElementById('setupBoard');
-    function startGame() {
-    const response = fetch('/start_game/', {
+    async function startGame() {
+    const response = await fetch('/start_game/', {
     method:'POST', headers:{'Content-Type': 'application/json'}});
-    const data = response.json();
+    const data = await response.json();
     console.log(data);
     }
     function findPiece(x, y) {
@@ -74,11 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-//    function makeMove(row, col){
-//
-//    }
-
-
     function handleDragStart(event) {
         event.dataTransfer.setData("text/plain", event.target.id);
     }
@@ -87,9 +82,18 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
     }
 
-    function handleDrop(event) {
-        console.log(event)
-        console.log('EVENT')
+    async function handleDrop(event) {
+        let source = event.dataTransfer.getData('text/plain').split('-')
+        let dest = event.target.id.split('-')
+        source = source.slice(2,4).map(Number)
+        if (dest[0] == 'square') {
+        dest = dest.slice(1,3).map(Number)
+        }
+        else {
+        dest = dest.slice(2,4).map(Number)
+        }
+        console.log(source, dest)
+
         event.preventDefault();
         const id = event.dataTransfer.getData('text/plain');
         const draggableElement = document.getElementById(id);
@@ -97,10 +101,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if(!dropTarget.classList.contains('square')) {
             dropTarget = dropTarget.closest('.square');
         }
+        const move_successful = await movePiece(source, dest)
+
+        if (!move_successful) {
+        console.log('d')
+        }
+        else {
         if(dropTarget.hasChildNodes()) {
             dropTarget.innerHTML = '';
         }
         dropTarget.appendChild(draggableElement);
+        }
+    }
+    async function movePiece(source, dest) {
+    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source:source, dest:dest})});
+    const data = await response.json();
+    if (data.status = 'success') {
+    return true;
+    }
+    else {
+    return false;
+    }
     }
 
     setupBoard.addEventListener('click', async () => {

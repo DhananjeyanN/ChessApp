@@ -85,13 +85,17 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleDrop(event) {
         let source = event.dataTransfer.getData('text/plain').split('-')
         let dest = event.target.id.split('-')
+        let source1 = source
         source = source.slice(2,4).map(Number)
         if (dest[0] == 'square') {
+        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(1,3).join('-')
         dest = dest.slice(1,3).map(Number)
         }
         else {
+        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(2,4).join('-')
         dest = dest.slice(2,4).map(Number)
         }
+        console.log(trueDest, 'KKKKKK')
         console.log(source, dest)
 
         event.preventDefault();
@@ -102,21 +106,25 @@ document.addEventListener('DOMContentLoaded', () => {
             dropTarget = dropTarget.closest('.square');
         }
         const move_successful = await movePiece(source, dest)
+        console.log(move_successful)
 
         if (!move_successful) {
-        console.log('d')
         }
         else {
+        console.log('Draggable Element', draggableElement)
+        draggableElement.id = trueDest
         if(dropTarget.hasChildNodes()) {
             dropTarget.innerHTML = '';
         }
         dropTarget.appendChild(draggableElement);
         }
     }
+
     async function movePiece(source, dest) {
     const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source:source, dest:dest})});
     const data = await response.json();
-    if (data.status = 'success') {
+    console.log(data.status)
+    if (data.status === 'Success') {
     return true;
     }
     else {

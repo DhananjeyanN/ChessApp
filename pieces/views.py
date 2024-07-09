@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import Game
+from .models import *
 import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -12,6 +12,7 @@ game = Game()
 def play_game(request):
     global game
     game.board.initialize_board()
+    game.turn = 'white'
     return Response({'status':'Success'}, status=200)
 
 @api_view(['POST'])
@@ -23,7 +24,7 @@ def make_move(request):
         dest = tuple(serializer.validated_data['dest'])
         print(source, dest, 'SOURCE-DEST')
         game.board.print_board()
-        is_valid = game.move(source, dest)
+        is_valid = game.move(source=source, dest=dest)
         print(is_valid, 'ISVALID')
         if is_valid:
             return Response({'status':'Success'}, status=200)

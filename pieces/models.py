@@ -373,7 +373,6 @@ class Board:
 
         self.board[0][4].set_piece(b_king)
         self.board[7][4].set_piece(w_king)
-        print('BOARD INITIALIZED')
         return w_king, b_king
 
     def print_board(self):
@@ -414,12 +413,9 @@ class Board:
 class Game:
     def __init__(self):
         self.board = Board()
-        # self.board.initialize_board()
         self.log = BoardLog()
-        # self.turn = self.player_setup()
         self.turn = 'white'
-        self.move = None
-
+        self.checkmate = False
     def switch_turn(self):
         self.turn = 'black' if self.turn == 'white' else 'white'
 
@@ -474,8 +470,11 @@ class Game:
         return None
 
     def move(self, source, dest):
+        if self.is_checkmate(self.turn):
+            print(f"Checkmate! {self.turn} loses.")
+            self.checkmate = True
+            return True
         piece = self.board.get_piece(source)
-        print(piece, 'PIECE')
         if piece and piece.get_color() == self.turn:
             if piece.move(self.board, source, dest, self.log):
                 if self.is_in_check(self.turn):
@@ -491,7 +490,6 @@ class Game:
         return False
 
     def play(self):
-        print('Game')
         while True:
             self.board.print_board()
             if self.is_checkmate(self.turn):
@@ -506,9 +504,9 @@ class Game:
             self.move(source, dest)
 
 
-def main():
-    game = Game()
-    game.play()
-
-if __name__ == "__main__":
-    main()
+# def main():
+#     game = Game()
+#     game.play()
+#
+# if __name__ == "__main__":
+#     main()

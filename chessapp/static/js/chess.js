@@ -1,12 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
     const setupBoard = document.getElementById('setupBoard');
+
+    function getCookie(cookie_name) {
+    let cookie_val = null;
+    if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i<cookies.length; i++) {
+    const cookie = cookies[i].trim();
+    if (cookie.substring(0,cookie_name.length+1) === (name + '=')) {
+    cookie_val = decodeURIComponent(cookie.substring(cookie_name.length() + 1));
+    break;
+    }
+    }
+    }
+    return cookie_val;
+    }
+    const csrftoken = getCookie('csrftoken')
     async function startGame() {
+    console.log('GAME STARTED');
     const response = await fetch('/start_game/', {
-    method:'POST', headers:{'Content-Type': 'application/json'}});
+    method:'POST', headers:{'Content-Type': 'application/json', 'X-CSRFToken':csrftoken}});
     const data = await response.json();
     console.log(data);
     }
+
     function findPiece(x, y) {
         // Simplified for demonstration
         if (x === 1 || x === 6) return 'pawn';  // Pawns
@@ -95,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
         trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(2,4).join('-')
         dest = dest.slice(2,4).map(Number)
         }
-        console.log(trueDest, 'KKKKKK')
         console.log(source, dest)
 
         event.preventDefault();
@@ -131,13 +148,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
     }
     }
-
-    setupBoard.addEventListener('click', async () => {
+        setupBoard.addEventListener('click', async () => {
         // Clear existing board to reinitialize
         board.innerHTML = '';
         await startGame();
         initializeBoard();
         console.log('bean');
     });
+
 
 });

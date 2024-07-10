@@ -12,6 +12,7 @@ game = Game()
 def play_game(request):
     global game
     game.board.initialize_board()
+    print('BBBBBBBB')
     game.turn = 'white'
     return Response({'status':'Success'}, status=200)
 

@@ -1,21 +1,25 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import *
+from django.views.decorators.csrf import csrf_exempt
+
+from .models import Game
 import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import MoveSerializer
 
 # Create your views here.
-game = Game()
+game = None
+@csrf_exempt
 @api_view(['POST'])
 def play_game(request):
     global game
+    game = Game()
     game.board.initialize_board()
-    print('BBBBBBBB')
-    game.turn = 'white'
+    game.board.print_board()
     return Response({'status':'Success'}, status=200)
 
+@csrf_exempt
 @api_view(['POST'])
 def make_move(request):
     global game
@@ -25,7 +29,8 @@ def make_move(request):
         dest = tuple(serializer.validated_data['dest'])
         print(source, dest, 'SOURCE-DEST')
         game.board.print_board()
-        is_valid = game.move(source=source, dest=dest)
+        print(source, dest)
+        is_valid = game.move(source, dest)
         print(is_valid, 'ISVALID')
         if is_valid:
             return Response({'status':'Success'}, status=200)

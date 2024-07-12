@@ -1,28 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
     const setupBoard = document.getElementById('setupBoard');
+    console.log('HELLLLLLLLLLOOOOOOOO')
 
-    function getCookie(cookie_name) {
-    let cookie_val = null;
-    if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i<cookies.length; i++) {
-    const cookie = cookies[i].trim();
-    if (cookie.substring(0,cookie_name.length+1) === (name + '=')) {
-    cookie_val = decodeURIComponent(cookie.substring(cookie_name.length() + 1));
-    break;
+function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
-    }
-    }
-    return cookie_val;
-    }
-    const csrftoken = getCookie('csrftoken')
+
+
+const csrftoken = getCookie('csrftoken');
     async function startGame() {
-    console.log('GAME STARTED');
-    const response = await fetch('/start_game/', {
-    method:'POST', headers:{'Content-Type': 'application/json', 'X-CSRFToken':csrftoken}});
-    const data = await response.json();
-    console.log(data);
+        console.log('GAME STARTED');
+        const response = await fetch('/start_game/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }
+        });
+        if (!response.ok) {
+            console.error('Failed to start the game', response.status);
+            return;
+        }
+        const data = await response.json();
+        console.log(data, 'REsPONSe');
     }
 
     function findPiece(x, y) {
@@ -138,7 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function movePiece(source, dest) {
-    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source:source, dest:dest})});
+    console.log(JSON.stringify({source:source, dest:dest}), 'SOURCE')
+    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({source:source, dest:dest})});
     const data = await response.json();
     console.log(data.status)
     if (data.status === 'Success') {
@@ -148,13 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
     }
     }
-        setupBoard.addEventListener('click', async () => {
+
+    setupBoard.addEventListener('click', async () => {
         // Clear existing board to reinitialize
         board.innerHTML = '';
         await startGame();
         initializeBoard();
         console.log('bean');
     });
-
 
 });

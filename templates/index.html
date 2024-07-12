@@ -11,10 +11,8 @@
     <div class="Board" id="Board">
     </div>
     <button id="setupBoard">Setup Board</button>
-    <script src="{% static 'js/chess.js' %}">
-        console.log('JJJJJJJJJJJJJJJJJ')
-        const csrf_token = '{{ csrf_token }}'
-        console.log(csrf_token)
-    </script>
+    <script src="{% static 'js/chess.js' %}"></script>
+    <script>csrftoken = "{{ csrf_token }}"</script>
+    <script>console.log(csrftoken)</script>
 </body>
 </html>

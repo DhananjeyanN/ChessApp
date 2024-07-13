@@ -18,6 +18,23 @@ function getCookie(name) {
         return cookieValue;
     }
 
+function checkmateAlert(winner) {
+    Swal.fire({
+    title:'Checkmate!!!',
+    text: `${winner} has won the game!!!`,
+    icon: 'success',
+    confirmButtonText:'Ok'
+    });
+}
+
+function checkAlert(checkedKing) {
+    Swal.fire({
+    title:'Check',
+    text: `${checkedKing} is-in-check`,
+    icon: 'warning',
+    confirmButtonText:'Ok'
+    });
+}
 
 const csrftoken = getCookie('csrftoken');
     async function startGame() {
@@ -155,6 +172,14 @@ const csrftoken = getCookie('csrftoken');
     const data = await response.json();
     console.log(data.status)
     if (data.status === 'Success') {
+        if (data.check) {
+        console.log('INCHECK', data)
+        checkAlert(data.checked_king);
+        }
+        if (data.checkmate) {
+        console.log('INCHECKMATE', data)
+        checkmateAlert(data.winner);
+        }
     return true;
     }
     else {

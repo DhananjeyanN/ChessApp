@@ -416,6 +416,7 @@ class Game:
         self.log = BoardLog()
         self.turn = 'white'
         self.checkmate = False
+        self.check = False
     def switch_turn(self):
         self.turn = 'black' if self.turn == 'white' else 'white'
 
@@ -478,9 +479,12 @@ class Game:
         if piece and piece.get_color() == self.turn:
             if piece.move(self.board, source, dest, self.log):
                 if self.is_in_check(self.turn):
+                    self.check = True
                     print(f"Move places {self.turn} in check! Illegal move.")
                     self.board.move_piece(dest, source, piece)
                     return False
+                else:
+                    self.check = False
                 self.switch_turn()
                 return True
             else:
@@ -489,19 +493,19 @@ class Game:
             print("No piece at source or not your turn!")
         return False
 
-    def play(self):
-        while True:
-            self.board.print_board()
-            if self.is_checkmate(self.turn):
-                print(f"Checkmate! {self.turn} loses.")
-                break
-            if self.is_in_check(self.turn):
-                print(f"{self.turn} is in check!")
-            print(f"{self.turn}'s move")
-            source,dest = input("Enter source (e.g., 'e2,e4'): ").strip().split(",")
-            source = (8 - int(source[1]), ord(source[0]) - ord('a'))
-            dest = (8 - int(dest[1]), ord(dest[0]) - ord('a'))
-            self.move(source, dest)
+    # def play(self):
+    #     while True:
+    #         self.board.print_board()
+    #         if self.is_checkmate(self.turn):
+    #             print(f"Checkmate! {self.turn} loses.")
+    #             break
+    #         if self.is_in_check(self.turn):
+    #             print(f"{self.turn} is in check!")
+    #         print(f"{self.turn}'s move")
+    #         source,dest = input("Enter source (e.g., 'e2,e4'): ").strip().split(",")
+    #         source = (8 - int(source[1]), ord(source[0]) - ord('a'))
+    #         dest = (8 - int(dest[1]), ord(dest[0]) - ord('a'))
+    #         self.move(source, dest)
 
 
 # def main():

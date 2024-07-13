@@ -9,14 +9,16 @@ from rest_framework.response import Response
 from .serializers import MoveSerializer
 
 # Create your views here.
-game = None
+game = Game()
 @csrf_exempt
 @api_view(['POST'])
 def play_game(request):
     global game
-    game = Game()
     game.board.initialize_board()
     game.board.print_board()
+    game.checkmate = False
+    game.check = False
+    game.turn = 'white'
     return Response({'status':'Success'}, status=200)
 
 @csrf_exempt
@@ -32,8 +34,9 @@ def make_move(request):
         print(source, dest)
         is_valid = game.move(source, dest)
         print(is_valid, 'ISVALID')
+        print(game.turn, game.check, game.checkmate)
         if is_valid:
-            return Response({'status':'Success'}, status=200)
+            return Response({'status':'Success', 'check':game.check, 'checkmate':game.checkmate, 'checked_king':game.turn, 'winner':game.turn}, status=200)
         else:
             return Response({'status':'Failed'}, status=400)
     return Response(serializer.errors, status=400)

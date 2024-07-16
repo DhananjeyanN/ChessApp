@@ -36,7 +36,12 @@ def make_move(request):
         print(is_valid, 'ISVALID')
         print(game.turn, game.check, game.checkmate)
         if is_valid:
-            return Response({'status':'Success', 'check':game.check, 'checkmate':game.checkmate, 'checked_king':game.turn, 'winner':game.turn}, status=200)
+            print('CHECK', game.check, 'CHECKMATE', game.checkmate)
+            if game.turn == 'white':
+                turn = 'black'
+            else:
+                turn = 'white'
+            return Response({'status':'Success', 'check':game.check, 'checkmate':game.checkmate, 'checked_king':turn, 'winner':game.turn}, status=200)
         else:
             return Response({'status':'Failed'}, status=400)
     return Response(serializer.errors, status=400)

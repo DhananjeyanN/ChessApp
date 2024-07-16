@@ -471,21 +471,21 @@ class Game:
         return None
 
     def move(self, source, dest):
-        if self.is_checkmate(self.turn):
-            print(f"Checkmate! {self.turn} loses.")
-            self.checkmate = True
-            return True
         piece = self.board.get_piece(source)
         if piece and piece.get_color() == self.turn:
             if piece.move(self.board, source, dest, self.log):
                 if self.is_in_check(self.turn):
-                    self.check = True
                     print(f"Move places {self.turn} in check! Illegal move.")
                     self.board.move_piece(dest, source, piece)
                     return False
+                self.switch_turn()
+                if self.is_checkmate(self.turn):
+                    print(f"Checkmate! {self.turn} loses.")
+                    self.checkmate = True
+                if self.is_in_check(self.turn):
+                    self.check = True
                 else:
                     self.check = False
-                self.switch_turn()
                 return True
             else:
                 print("Illegal move!")

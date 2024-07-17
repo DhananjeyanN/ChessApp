@@ -1,9 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
+from django.contrib import messages
 from .models import Game
-import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import MoveSerializer
@@ -38,10 +37,10 @@ def make_move(request):
         if is_valid:
             print('CHECK', game.check, 'CHECKMATE', game.checkmate)
             if game.turn == 'white':
-                turn = 'black'
+                check_color = 'black'
             else:
-                turn = 'white'
-            return Response({'status':'Success', 'check':game.check, 'checkmate':game.checkmate, 'checked_king':turn, 'winner':game.turn}, status=200)
+                check_color = 'white'
+            return Response({'status':'Success', 'check':game.check, 'checkmate':game.checkmate, 'checked_king':check_color, 'winner':game.turn}, status=200)
         else:
             return Response({'status':'Failed'}, status=400)
     return Response(serializer.errors, status=400)

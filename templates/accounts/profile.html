@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-center mb-5" style="color:#e7cd78;">
+    Profile
+</h1>
+<div>
+    <div class="user-info">
+        <h2>Welcome, {{ user_profile.username }}</h2>
+        <img src="{{ user_profile.profile.avatar.url }}" alt="{{ user_profile.first_name }}" style="width:80px; height:80px; object-fit:cover; border-radius:80px;">
+        <p><strong>First name:</strong> {{ request.user.first_name }}</p>
+        <p><strong>Last name:</strong> {{ request.user.last_name }}</p>
+        <p><strong>Email:</strong> {{ request.user.email }}</p>
+<!--        <strong>API_Key:</strong> <br>-->
+<!--        <textarea id = 'tokenText' readonly cols="50" rows="5"> {{ request.user.profile.api_token }}</textarea>-->
+<!--        <div class="nav-item">-->
+<!--            <button onclick="copyToken()" style="padding:10px; border: 2px solid black; border-radius: 10px;">Copy Token</button>-->
+<!--        <a href="javascript:{document.querySelector('#Generate_API_Key').submit()}" style="padding: 12px; border: 2px solid black; border-radius: 10px; text-decoration: None;">Generate New Api Key</a>-->
+<!--        <form id="Generate_API_Key" action="{% url 'generate_api_key' %}" method="post">-->
+<!--            {% csrf_token %}-->
+<!--            <input type="password" name="password" placeholder="Enter Password: " required>-->
+<!--            <input type="hidden">-->
+<!--        </form>-->
+<!--    </div>-->
+        <strong>API_Key:</strong> <br>
+        <textarea id='tokenText' readonly cols="50" rows="5"> {{ request.user.profile.api_token }}</textarea>
+        <div class="nav-item">
+            <button onclick="copyToken()" style="padding:10px; border: 2px solid black; border-radius: 10px;">Copy Token</button>
+            <!-- Button to Open the Modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#passwordModal">
+                Generate New API Key
+            </button>
+    </div>
+            <div class="modal" id="passwordModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Enter Password</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form id="Generate_API_Key" action="{% url 'generate_api_key' %}" method="post">
+                        {% csrf_token %}
+                        <input type="password" name="password" placeholder="Enter your password" required class="form-control">
+                </div>
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Generate</button>
+                    </form>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+<script>
+    function copyToken(){
+    var copyText = document.getElementById('tokenText');
+    copyText.select();
+    document.execCommand('copy');
+    }
+</script>
+{% endblock %}

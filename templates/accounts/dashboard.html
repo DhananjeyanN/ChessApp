@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'partials/alerts.html' %}
+
+<div class="dashboard">
+    <h1>Dashboard</h1>
+    <div class="user-info">
+        <h2>Welcome, {{ user.username }}</h2>
+        <img src="{{ user.profile.avatar.url }}" alt="{{ user.first_name }}" style="width:80px; height:80px; object-fit:cover; border-radius:80px;">
+        <p><strong>First name:</strong> {{ user.first_name }}</p>
+        <p><strong>Last name:</strong> {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Date of Birth:</strong> {{ user.profile.dob }}</p>
+        <a href="{% url 'edit_profile' %}">Edit Profile</a>
+        <a href="{% url 'search' %}">Lookup Friends</a>
+    </div>
+    <h2>Friends:</h2>
+    {% for friend in friends %}
+    <div>
+        <img src="{{ friend.profile.avatar.url }} " alt="avatar" style="width:80px; height:80px; object-fit:cover; border-radius:80px;">
+        <a href="{% url 'profile' friend.profile.user.id %}">{{ friend }}</a>
+        {% if messages %}
+        {% for message in messages %}
+        <div>
+            <strong>{{message.sender.username}}</strong>:
+            {{ message.message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        <form method="post" action="{% url 'send_message' friend.id %}">
+            {% csrf_token %}
+            <input type="text" name="message">
+
+            <button type="submit" value="send_message">Send</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+<main class = 'posts'>
+{% for post in posts %}
+<div class = 'post'>
+    <h2>
+        {{post.title}}
+    </h2>
+    <p>
+        {{post.content}}
+    </p>
+        <img src = '{{ post.image.url }}'>
+    <h4> posted by:{{post.author}}</h4>
+    <p>
+        <a href = "{% url 'edit_post' post.id %}" >Edit Post</a>
+        <a href = "{% url 'delete_post' post.id %}" >Delete Post</a>
+    </p>
+</div>
+{% endfor %}
+</main>
+
+{% endblock %}

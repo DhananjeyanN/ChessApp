@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'chessboard',
     'pieces',
     'rest_framework',
+    'accounts',
 ]
 
 MIDDLEWARE = [

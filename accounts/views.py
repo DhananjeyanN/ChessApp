@@ -13,12 +13,12 @@ import requests
 # Create your views here.
 
 def register(request):
-    profile = SiteProfile.objects.all().first()
     print(request.GET)
     if request.method == "POST":
         print(request.POST)
         form = RegistrationForm(request.POST)
         if form.is_valid():
+            print('FORM VALID')
             form.password = request.POST.get('password')
             user = form.save(commit=False)
             password = form.cleaned_data.get('password')
@@ -31,12 +31,12 @@ def register(request):
     else:
         form = RegistrationForm()
 
-    context = {'profile': profile, 'form': form}
+    context = {'form': form}
     return render(request, 'accounts/register.html', context=context)
 
 
 def login(request):
-    profile = SiteProfile.objects.all().first()
+    print('REQUEST', request.POST)
     if request.method == "POST":
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
@@ -47,12 +47,12 @@ def login(request):
             if user is not None:
                 auth.login(request, user)
                 messages.success(request, "Logged In!!!")
-                return redirect('reg_index')
+                return redirect('home')
         else:
             messages.error(request, "Incorrect Login")
             return redirect('login')
     form = AuthenticationForm()
-    context = {'profile': profile, 'form': form}
+    context = {'form': form}
     return render(request, 'accounts/login.html', context=context)
 
 
@@ -66,29 +66,16 @@ def logout(request):
 
 
 def profile(request, user_id):
+    print(request.user.id, 'USER ID')
     profile = SiteProfile.objects.all().first()
     user_profile = Profile.objects.get(user_id=user_id)
     context = {'user_profile': user_profile, 'profile':profile}
     return render(request, 'accounts/profile.html', context=context)
 
 
-def generate_api_key(request):
-    if request.method == 'POST':
-        url = 'http://localhost:8000/auth/jwt/create/'
-        password = request.POST.get('password')
-        user = authenticate(username=request.user.username, password=password)
-        if user is not None:
-            data = requests.post(url, data={
-                'username': user.username,
-                'password': password,
-            })
-            response = data.json()
-            api_key = response.get('access', 'NOT FOUND')
-            user_profile = Profile.objects.get(user_id=request.user.id)
-            user_profile.api_token = api_key
-            user_profile.save()
-            print(api_key)
-            messages.success(request, 'API KEY GENERATED!!!')
-        else:
-            messages.error(request, 'Incorrect Password!!!')
-    return redirect('profile', request.user.id)
+
+def home(request):
+    return render(request, 'home.html')
+
+def matches(request):
+    return render(request, 'accounts/matches.html')

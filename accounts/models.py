@@ -13,18 +13,18 @@ class Profile(models.Model):
         return f'{self.user.first_name} {self.user.last_name} {self.user.email}'
 
 
-# class SiteProfile(models.Model):
-#     name = models.CharField(max_length=100)
-#     about = models.TextField()
-#     developed_by = models.CharField(max_length=100)
-#     logo = models.ImageField(upload_to='core_images/')
-#     h1 = models.ImageField(upload_to='core_images/', blank=True)
-#     h2 = models.ImageField(upload_to='core_images/', blank=True)
-#     photos = models.ImageField(upload_to='core_images/', blank=True)
-#     photos2 = models.ImageField(upload_to='core_images/', blank=True)
-#     photos3 = models.ImageField(upload_to='core_images/', blank=True)
-#     photos4 = models.ImageField(upload_to='core_images/', blank=True)
-#     year_started = models.DateField()
-#
-#     def __str__(self):
-#         return self.name
+class SiteProfile(models.Model):
+    name = models.CharField(max_length=100)
+    about = models.TextField()
+    developed_by = models.CharField(max_length=100)
+    logo = models.ImageField(upload_to='core_images/')
+    h1 = models.ImageField(upload_to='core_images/', blank=True)
+    h2 = models.ImageField(upload_to='core_images/', blank=True)
+    photos = models.ImageField(upload_to='core_images/', blank=True)
+    photos2 = models.ImageField(upload_to='core_images/', blank=True)
+    photos3 = models.ImageField(upload_to='core_images/', blank=True)
+    photos4 = models.ImageField(upload_to='core_images/', blank=True)
+    year_started = models.DateField()
+
+    def __str__(self):
+        return self.name

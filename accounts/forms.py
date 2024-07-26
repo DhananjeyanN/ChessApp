@@ -37,18 +37,18 @@ class LoginForm(AuthenticationForm):
             'password': forms.PasswordInput(attrs={'class': 'form-control'}),
         }
 
-# class EditPostForm(forms.ModelForm):
-#     class Meta:
-#         model = Post
-#         fields = ['title', 'content', 'image', 'category']
-#
-#     def __init__(self, *args, **kwargs):
-#         super(EditPostForm, self).__init__(*args, **kwargs)
-#         for field in self.fields:
-#             self.fields[field].widget.attrs['class'] = 'form-field'
-#
-#
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = []
+
+    def __init__(self, *args, **kwargs):
+        super(EditPostForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-field'
+
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['avatar', 'bio', 'dob']
+        fields = ['avatar', 'dob']

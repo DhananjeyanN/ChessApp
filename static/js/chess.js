@@ -1,11 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
+    let socket;
     const board = document.getElementById('Board');
     const setupBoard = document.getElementById('setupBoard');
+
     function startGame() {
-    const response = fetch('/start_game/', {
+    const response = fetch('/play_game/', {
     method:'POST', headers:{'Content-Type': 'application/json'}});
     const data = response.json();
     console.log(data);
+    if (data.status === 'Success') {
+        const gameId = data.gameplay_id;
+        socket = new WebSocket(`ws://127.0.0.1:8000/ws/game/${gameId}/`);
+        socket.onmessage = function (event){
+            const data = JSON.parse(event.data);
+            handleMove(data.source, data.dest);
+        }
+    }
     }
     function findPiece(x, y) {
         // Simplified for demonstration
@@ -98,6 +108,36 @@ document.addEventListener('DOMContentLoaded', () => {
             dropTarget = dropTarget.closest('.square');
         }
         if(dropTarget.hasChildNodes()) {
+            dropTarget.innerHTML = '';
+        }
+        dropTarget.appendChild(draggableElement);
+    }
+    async function movePiece(source,dest) {
+        const response = await fetch('/move/', {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                'X-CSRFToken':csrftoken
+            },
+            body:JSON.stringify({source:source, dest:dest})
+        });
+        const data = await response.json()
+        console.log(data.status)
+        if (data.status === 'Success') {
+            if (socket) {
+                socket.send(JSON.stringify({'source':source,'dest':dest}));
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    function handleMove(source, dest) {
+        const draggableElement = document.getElementById(`piece-${source[0]}-${source[1]}`);
+        const dropTarget = document.getElementById(`square-${dest[0]}-${dest[1]}`);
+        draggableElement.id = `piece-${dest[0]}-${dest[1]}`;
+        if (dropTarget.hasChildNodes()){
             dropTarget.innerHTML = '';
         }
         dropTarget.appendChild(draggableElement);

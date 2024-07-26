@@ -4,7 +4,6 @@
     <h1 class="text-white" style="padding-bottom:40px;">
     Login
     </h1>
-    {% include 'partials/alerts.html' %}
     <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
         <div class="form-group text-center" style="color:white;">

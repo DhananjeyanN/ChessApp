@@ -3,9 +3,9 @@
 
             <div class="container-fluid">
 
-            <a class="navbar-brand" href="{% url 'index' %}">
+            <a class="navbar-brand" href="{% url 'home' %}">
                 <div class="logo">
-                <img src="{{ profile.logo.url }}" alt="" width="30" height="24">
+                <img src="#" alt="" width="30" height="24">
                     </div>
             </a>
 
@@ -13,7 +13,10 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" style="color:#e7cd78; font-family: 'Glacial Indifference', sans-serif;" href="{% url 'reg_index'%}">Home</a>
+                        <a class="nav-link" style="color:#e7cd78; font-family: 'Glacial Indifference', sans-serif;" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" style="color:#e7cd78; font-family: 'Glacial Indifference', sans-serif;" href="{% url 'matches' %}">Matches</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" style="color:#e7cd78; font-family: 'Glacial Indifference', sans-serif;" href="{% url 'profile' request.user.id %}">Profile</a>
@@ -27,7 +30,7 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" style="color:#e7cd78; font-family: 'Glacial Indifference', sans-serif;" href="{% url 'index' %}">Home</a>
+                        <a class="nav-link" style="color:#e7cd78; font-family: 'Glacial Indifference', sans-serif;" href="{% url 'home' %}">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" style="color:#e7cd78; font-family: 'Glacial Indifference', sans-serif;" href="{% url 'login' %}">Login</a>

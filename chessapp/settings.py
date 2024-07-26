@@ -37,11 +37,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'chessboard',
     'pieces',
     'rest_framework',
     'accounts',
+    'channels',
 ]
+
+ASGI_APPLICATION = 'chessapp.asgi.application'
+CHANNEL_LAYERS = {
+    'default':{
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

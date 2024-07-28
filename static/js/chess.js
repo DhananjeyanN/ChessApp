@@ -2,22 +2,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let socket;
     const board = document.getElementById('Board');
     const setupBoard = document.getElementById('setupBoard');
+    console.log('UFUFUFUFUFUFUFFUFUUFSHFUSIFHU');
 
     function startGame() {
+        console.log('UFUFUFUFUFUFUFFUFUUFSHFUSIFHU');
     const response = fetch('/play_game/', {
     method:'POST', headers:{'Content-Type': 'application/json'}});
     const data = response.json();
-    console.log(data);
+    console.log(data, data.status, 'UFUFUFUFUFUFUFFUFUUFSHFUSIFHU');
     if (data.status === 'Success') {
         const gameId = data.gameplay_id;
         socket = new WebSocket(`ws://127.0.0.1:8000/ws/game/${gameId}/`);
+        console.log('WEBSOCKET')
         socket.onmessage = function (event){
             const data = JSON.parse(event.data);
             handleMove(data.source, data.dest);
         }
     }
     }
-    function findPiece(x, y) {
+    function findPiece(x, y){
         // Simplified for demonstration
         if (x === 1 || x === 6) return 'pawn';  // Pawns
         else if (x === 0 || x === 7) {
@@ -150,5 +153,9 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeBoard();
         console.log('bean');
     });
+    (async () => {
+        await startGame();
+        initializeBoard();
+    })();
 
 });

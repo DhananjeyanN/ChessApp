@@ -32,6 +32,7 @@ def make_move(request):
         game_instance = Game.deserialize(gameplay.game_state)
         if game_instance.move(source, dest):
             gameplay.save_game(game=game_instance)
+            game_instance.board.print_board()
             return Response({'status':'success'}, status=200)
         else:
             return Response({'status':'fail'}, status=400)

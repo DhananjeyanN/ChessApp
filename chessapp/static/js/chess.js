@@ -1,60 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
+    let socket;
     const board = document.getElementById('Board');
     const setupBoard = document.getElementById('setupBoard');
-    console.log('HELLLLLLLLLLOOOOOOOO')
 
-function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-function checkmateAlert(winner) {
-    Swal.fire({
-    title:'Checkmate!!!',
-    text: `${winner} has won the game!!!`,
-    icon: 'success',
-    confirmButtonText:'Ok'
-    });
-}
-
-function checkAlert(checkedKing) {
-    Swal.fire({
-    title:'Check',
-    text: `${checkedKing} is-in-check`,
-    icon: 'warning',
-    confirmButtonText:'Ok'
-    });
-}
-
-const csrftoken = getCookie('csrftoken');
     async function startGame() {
-        console.log('GAME STARTED');
-        const response = await fetch('/start_game/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            }
-        });
-        if (!response.ok) {
-            console.error('Failed to start the game', response.status);
-            return;
+    const response = await fetch('/play_game/', {
+    method:'POST', headers:{'Content-Type': 'application/json'}});
+    const data = await response.json();
+    console.log(data, data.status, 'UFUFUFUFUFUFUFFUFUUFSHFUSIFHU');
+    if (data.status === 'Success') {
+        const gameId = data.gameplay_id;
+        socket = new WebSocket(`ws://127.0.0.1:8000/ws/game/${gameId}/`);
+        console.log('WEBSOCKET', gameId)
+        socket.onmessage = function (event){
+            const data = JSON.parse(event.data);
+            handleMove(data.source, data.dest);
         }
-        const data = await response.json();
-        console.log(data, 'REsPONSe');
     }
-
-    function findPiece(x, y) {
+    }
+    function findPiece(x, y){
         // Simplified for demonstration
         if (x === 1 || x === 6) return 'pawn';  // Pawns
         else if (x === 0 || x === 7) {
@@ -121,6 +85,11 @@ const csrftoken = getCookie('csrftoken');
         });
     }
 
+//    function makeMove(row, col){
+//
+//    }
+
+
     function handleDragStart(event) {
         event.dataTransfer.setData("text/plain", event.target.id);
     }
@@ -129,21 +98,9 @@ const csrftoken = getCookie('csrftoken');
         event.preventDefault();
     }
 
-    async function handleDrop(event) {
-        let source = event.dataTransfer.getData('text/plain').split('-')
-        let dest = event.target.id.split('-')
-        let source1 = source
-        source = source.slice(2,4).map(Number)
-        if (dest[0] == 'square') {
-        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(1,3).join('-')
-        dest = dest.slice(1,3).map(Number)
-        }
-        else {
-        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(2,4).join('-')
-        dest = dest.slice(2,4).map(Number)
-        }
-        console.log(source, dest)
-
+    function handleDrop(event) {
+        console.log(event)
+        console.log('EVENT')
         event.preventDefault();
         const id = event.dataTransfer.getData('text/plain');
         const draggableElement = document.getElementById(id);
@@ -151,40 +108,39 @@ const csrftoken = getCookie('csrftoken');
         if(!dropTarget.classList.contains('square')) {
             dropTarget = dropTarget.closest('.square');
         }
-        const move_successful = await movePiece(source, dest)
-        console.log(move_successful)
-
-        if (!move_successful) {
-        }
-        else {
-        console.log('Draggable Element', draggableElement)
-        draggableElement.id = trueDest
         if(dropTarget.hasChildNodes()) {
             dropTarget.innerHTML = '';
         }
         dropTarget.appendChild(draggableElement);
+    }
+    async function movePiece(source,dest) {
+        const response = await fetch('/move/', {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+            },
+            body:JSON.stringify({source:source, dest:dest})
+        });
+        const data = await response.json()
+        console.log(data.status)
+        if (data.status === 'Success') {
+            if (socket) {
+                socket.send(JSON.stringify({'source':source,'dest':dest}));
+            }
+            return true;
+        }
+        else {
+            return false;
         }
     }
-
-    async function movePiece(source, dest) {
-    console.log(JSON.stringify({source:source, dest:dest}), 'SOURCE')
-    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({source:source, dest:dest})});
-    const data = await response.json();
-    console.log(data.status)
-    if (data.status === 'Success') {
-        if (data.check) {
-        console.log('INCHECK', data)
-        checkAlert(data.checked_king);
+    function handleMove(source, dest) {
+        const draggableElement = document.getElementById(`piece-${source[0]}-${source[1]}`);
+        const dropTarget = document.getElementById(`square-${dest[0]}-${dest[1]}`);
+        draggableElement.id = `piece-${dest[0]}-${dest[1]}`;
+        if (dropTarget.hasChildNodes()){
+            dropTarget.innerHTML = '';
         }
-        if (data.checkmate) {
-        console.log('INCHECKMATE', data)
-        checkmateAlert(data.winner);
-        }
-    return true;
-    }
-    else {
-    return false;
-    }
+        dropTarget.appendChild(draggableElement);
     }
 
     setupBoard.addEventListener('click', async () => {
@@ -194,5 +150,9 @@ const csrftoken = getCookie('csrftoken');
         initializeBoard();
         console.log('bean');
     });
+    (async () => {
+        await startGame();
+        initializeBoard();
+    })();
 
 });

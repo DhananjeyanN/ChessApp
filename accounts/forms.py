@@ -2,7 +2,8 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 
-from accounts.models import Profile
+from accounts.models import Player
+from pieces.models import UserQueue
 
 
 class RegistrationForm(forms.ModelForm):
@@ -37,18 +38,24 @@ class LoginForm(AuthenticationForm):
             'password': forms.PasswordInput(attrs={'class': 'form-control'}),
         }
 
-class EditProfileForm(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = []
-
-    def __init__(self, *args, **kwargs):
-        super(EditPostForm, self).__init__(*args, **kwargs)
-        for field in self.fields:
-            self.fields[field].widget.attrs['class'] = 'form-field'
+# class EditProfileForm(forms.ModelForm):
+#     class Meta:
+#         model = Player
+#         fields = []
+#
+#     def __init__(self, *args, **kwargs):
+#         super(EditPostForm, self).__init__(*args, **kwargs)
+#         for field in self.fields:
+#             self.fields[field].widget.attrs['class'] = 'form-field'
 
 
 class ProfileForm(forms.ModelForm):
     class Meta:
-        model = Profile
+        model = Player
         fields = ['avatar', 'dob']
+
+
+class AddUserToQueueForm(forms.ModelForm):
+    class Meta:
+        model = UserQueue
+        fields = ['user']

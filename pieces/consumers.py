@@ -31,7 +31,7 @@ class ChessConsumer(WebsocketConsumer):
             )
         else:
             self.send(text_data=json.dumps({
-                'status':'failed'
+                'status':'failed....'
             }))
 
     def move_made(self, event):

@@ -13,6 +13,7 @@
     <button id="setupBoard">Setup Board</button>
     <script src="{% static 'js/chess.js' %}"></script>
     <script>csrftoken = "{{ csrf_token }}"</script>
+    <script>gameplay_id = "{{ gameplay_id }}"</script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 {% endblock %}

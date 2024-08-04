@@ -1,17 +1,8 @@
 from django.db import models
 from accounts.models import User
 
-from accounts.models import Profile
+from accounts.models import Player
 from pieces.gamelogic import Game
-
-
-class Player(models.Model):
-    name = models.CharField(max_length=120)
-    is_white = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name + 'Playing as' + 'white' if self.is_white else 'black'
-
 
 class GamePlay(models.Model):
     game_state = models.TextField()
@@ -27,4 +18,11 @@ class GamePlay(models.Model):
 
     def __str__(self):
         return f'White: {self.white_player}, Black: {self.black_player}, Game State: {self.game_state}'
+
+class UserQueue(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    position = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f'Username: {self.user.username}, Position: {self.position}'
 

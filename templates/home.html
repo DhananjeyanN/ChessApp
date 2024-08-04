@@ -1,5 +1,32 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1 style="color:gold;">Home</h1>
-
+{% if request.user.is_authenticated %}
+{% if not user_queue %}
+<form method="post" action="{% url 'queue' %}">
+    {% csrf_token %}
+    <input type="hidden">
+    <button type="submit">Join Queue</button>
+</form>
+{% else %}
+{% if gameplay_id > 0 %}
+<a href="{% url 'game_page' gameplay_id %}" class="content">Join Game</a>
+{% endif %}
+<h3 style="color:gold;">Queue</h3>
+<ul>
+    {% if queue %}
+{% for q in queue %}
+    <li class="content">{{ q.user.username }}-{{q.position}}</li>
+    {% endfor %}
+    {% else %}
+    <h2 class="content">NO PLAYER EXISTS!!!</h2>
+    {% endif %}
+</ul>
+<form method="post" action="{% url 'leave_queue' %}">
+    {% csrf_token %}
+    <input type="hidden">
+    <button type="submit">Leave Queue</button>
+</form>
+{% endif %}
+{% endif %}
 {% endblock %}

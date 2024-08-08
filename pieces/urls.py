@@ -1,5 +1,5 @@
 from django.urls import path
-
+from accounts.views import home
 from . import views
 
 urlpatterns = [
@@ -9,5 +9,6 @@ urlpatterns = [
     path('queue', views.join_queue, name='queue'),
     path('leave_queue', views.remove_user_from_queue, name='leave_queue'),
     path('create_game', views.create_game, name='create_game'),
+    path('', home, name='pieces_home')
     # path('check/<str:color>/', views.check, name='check')
 ]

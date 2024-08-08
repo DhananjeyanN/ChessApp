@@ -10,6 +10,7 @@ from .models import GamePlay, Player, UserQueue
 from .serializers import MoveSerializer
 from .utils import reorder_queue
 
+gameplay = None
 
 # Create your views here.
 @csrf_exempt
@@ -52,26 +53,33 @@ def check_game_state(request):
 def index(request):
     return render(request, 'index.html')
 
-@api_view(['POST', 'GET'])
+@api_view(['POST'])
 def join_queue(request):
-    if request.method == 'POST':
-        if not UserQueue.objects.filter(user=request.user).exists():
-            user_queue = UserQueue(user=request.user)
-            user_queue.position = UserQueue.objects.count()+1
-            user_queue.save()
-        return redirect('home')
+    global gameplay
+    if request.headers.get('play_state') == 'true':
+        if gameplay.black_player:
+            gameplay = None
+            return Response({'game_state': 'true'})
+        else:
+            return Response({'game_state': 'false'})
+    if gameplay:
+        gameplay.black_player = Player.objects.filter(user=request.user)
+        game_id = gameplay.id
+        return Response({'game_id': game_id, 'start':'true'})
     else:
-        queue = UserQueue.objects.all().order_by('position')
-        user_queue = UserQueue.objects.filter(user=request.user)
-        if user_queue:
-            user_queue = user_queue[0]
+        gameplay = GamePlay()
+        gameplay.white_player = Player.objects.filter(user=request.user)
+        game = Game()
+        game.board.initialize_board()
+        gameplay.save_game(game)
+        return Response({'game_id': gameplay.id, 'start':'false'})
 
-        return render(request, 'home.html', context={'queue':queue, 'user_queue':user_queue, 'gameplay_id':create_game()})
+
 
 def remove_user_from_queue(request):
-    user_queue = UserQueue.objects.filter(user = request.user)[0]
-    user_queue.delete()
-    reorder_queue()
+    global p1
+    if p1 == Player.objects.filter(user=request.user):
+        p1 = None
     return redirect('home')
 
 

@@ -1,5 +1,6 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from .gamelogic import Game
@@ -53,26 +54,35 @@ def check_game_state(request):
 def index(request):
     return render(request, 'index.html')
 
+@login_required
 @api_view(['POST'])
-def join_queue(request):
-    global gameplay
-    if request.headers.get('play_state') == 'true':
-        if gameplay.black_player:
-            gameplay = None
-            return Response({'game_state': 'true'})
-        else:
-            return Response({'game_state': 'false'})
-    if gameplay:
-        gameplay.black_player = Player.objects.filter(user=request.user)
-        game_id = gameplay.id
-        return Response({'game_id': game_id, 'start':'true'})
+@csrf_exempt
+def join_game(request):
+    user=request.user
+    gameplay = GamePlay.objects.filter(is_ready=False).first()
+    if gameplay and gameplay.white_player and not gameplay.black_player:
+        gameplay.black_player = Player.objects.create(user=user, is_white = False)
+        gameplay.is_ready = True
+        gameplay.save()
+        return JsonResponse({'status':'joined_game','gameplay_id':gameplay.id},status=200)
     else:
-        gameplay = GamePlay()
-        gameplay.white_player = Player.objects.filter(user=request.user)
+        white_player = Player.objects.create(user=user,is_white=True)
         game = Game()
         game.board.initialize_board()
-        gameplay.save_game(game)
-        return Response({'game_id': gameplay.id, 'start':'false'})
+        new_gameplay = GamePlay()
+        new_gameplay.white_player = white_player
+        new_gameplay.save_game(game=game)
+        new_gameplay.save()
+        return JsonResponse({'status':'initialized_game','gameplay_id':gameplay.id}, status=200)
+
+@login_required
+@api_view(['POST'])
+@csrf_exempt
+def check_status(request):
+    gameplay_id = request.data.get('gameplay_id')
+    gameplay = GamePlay.objects.get(id=gameplay_id)
+    return JsonResponse({'is_ready':gameplay.is_ready}, status=200)
+
 
 
 
@@ -83,20 +93,3 @@ def remove_user_from_queue(request):
     return redirect('home')
 
 
-def create_game():
-    if len(UserQueue.objects.all()) >=2:
-        p1 = UserQueue.objects.filter(position=1)[0]
-        p2 = UserQueue.objects.filter(position=2)[0]
-        UserQueue.objects.filter(position=1).delete()
-        UserQueue.objects.filter(position=2).delete()
-        reorder_queue()
-        gameplay = GamePlay()
-        gameplay.white_player = p1
-        gameplay.black_player = p2
-        game = Game()
-        game.board.initialize_board()
-        gameplay.save_game(game)
-        print(gameplay.id)
-        return gameplay.id
-    else:
-        return -1

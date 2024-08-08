@@ -9,6 +9,7 @@ class Player(models.Model):
     avatar = models.ImageField(upload_to='avatars/')
     dob = models.DateField(null=True, blank=True)
     is_logged_in = models.BooleanField(default=False)
+    is_white = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name} {self.user.email}'

@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
-    const setupBoard = document.getElementById('setupBoard');
-
 
 function getCookie(name) {
         let cookieValue = null;
@@ -37,22 +35,22 @@ function checkAlert(checkedKing) {
 }
 
 const csrftoken = getCookie('csrftoken');
-    async function startGame() {
-        console.log('GAME STARTED');
-        const response = await fetch('/play_game/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            }
-        });
-        if (!response.ok) {
-            console.error('Failed to start the game', response.status);
-            return;
-        }
-        const data = await response.json();
-        console.log(data, 'REsPONSe');
-    }
+    // async function startGame() {
+    //     console.log('GAME STARTED');
+    //     const response = await fetch('/play_game/', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'X-CSRFToken': csrftoken
+    //         }
+    //     });
+    //     if (!response.ok) {
+    //         console.error('Failed to start the game', response.status);
+    //         return;
+    //     }
+    //     const data = await response.json();
+    //     console.log(data, 'REsPONSe');
+    // }
 
     function findPiece(x, y) {
         // Simplified for demonstration
@@ -187,13 +185,10 @@ const csrftoken = getCookie('csrftoken');
     return false;
     }
     }
-
-    setupBoard.addEventListener('click', async () => {
-        // Clear existing board to reinitialize
+    async function set_board() {
         board.innerHTML = '';
-        await startGame();
         initializeBoard();
         console.log('bean');
-    });
-
+    }
+    set_board();
 });

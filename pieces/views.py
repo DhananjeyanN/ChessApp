@@ -51,8 +51,9 @@ def check_game_state(request):
     pass
 
 
-def index(request):
-    return render(request, 'index.html')
+def index(request,game_id):
+    gameplay = GamePlay.objects.get(id=game_id)
+    return render(request, 'index.html',context={'gameplay':gameplay})
 
 @login_required
 @api_view(['POST'])
@@ -73,7 +74,7 @@ def join_game(request):
         new_gameplay.white_player = white_player
         new_gameplay.save_game(game=game)
         new_gameplay.save()
-        return JsonResponse({'status':'initialized_game','gameplay_id':gameplay.id}, status=200)
+        return JsonResponse({'status':'initialized_game','gameplay_id':new_gameplay.id}, status=200)
 
 @login_required
 @api_view(['POST'])

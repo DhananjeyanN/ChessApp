@@ -28,7 +28,7 @@ def register(request):
             password = form.cleaned_data.get('password')
             user.set_password(password)
             user.save()
-            user_profile = Player(user=user)
+            user_profile = Player(user=user, is_white=False)
             user_profile.save()
             return redirect('login')
 

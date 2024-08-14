@@ -11,7 +11,7 @@ import requests
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 
-from pieces.models import UserQueue
+from pieces.models import UserQueue, GamePlay
 
 
 # Create your views here.
@@ -44,14 +44,12 @@ def login(request):
     if request.method == "POST":
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
-            user = auth.authenticate(username=form.cleaned_data.get('username'),
-                                     password=form.cleaned_data.get('password'))
-
+            user = auth.authenticate(username=form.cleaned_data.get('username'), password=form.cleaned_data.get('password'))
             print('hello')
             if user is not None:
                 auth.login(request, user)
                 messages.success(request, "Logged In!!!")
-                player  = Player.objects.filter(user=user.id)
+                player = Player.objects.filter(user=user.id)
                 player.is_logged_in = True
                 return redirect('home')
         else:
@@ -82,16 +80,14 @@ def profile(request, user_id):
 
 
 def home(request):
-    if request.user.is_authenticated:
-        form = AddUserToQueueForm()
-        user_queue = UserQueue.objects.filter(user=request.user)
-        if user_queue:
-            user_queue = user_queue[0]
-        print(user_queue, 'USER QUEUE')
-        queue = UserQueue.objects.all().order_by('position')
-        return render(request, 'home.html', context={'form':form, 'user_queue':user_queue, 'queue':queue})
-    else:
-        return render(request, 'home.html')
+    game_exists = False
+    if Player.objects.filter(user=request.user.id):
+        player = Player.objects.filter(user=request.user.id)[0]
+        if GamePlay.objects.filter(is_ready=False, white_player=player):
+            game_exists = True
+    print(game_exists)
+
+    return render(request, 'home.html', context={'game_exists':game_exists})
 
 @permission_classes([IsAuthenticated])
 def matches(request):

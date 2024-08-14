@@ -9,6 +9,7 @@ class GamePlay(models.Model):
     white_player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='white',blank=True, null=True)
     black_player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='black',blank=True, null=True)
     is_ready = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
 
     def save_game(self, game):
         self.game_state = game.serialize()

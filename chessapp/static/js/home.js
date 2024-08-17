@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (data.status === 'initialized_game') {
             waitForOponent(gameplay_id)
         }
+        else if (data.status === 'no_game_found') {
+            console.log('NO GAME FOUND FOR BLACK')
+        }
     }
 
     async function waitForOponent(gameplay_id){
@@ -77,17 +80,19 @@ document.addEventListener('DOMContentLoaded', () => {
             },1000);
         }
 
-        async function openGame() {
-            const response = await fetch('/user_game_state/', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken,}});
-            if (!response.ok) {
-                console.error('Failed to start Game!!!', response.status);
-                return;
-            }
-            const data = await response.json();
-            console.log(data, 'REsPONSe');
-            const gameplay_id = data.gameplay_id
-            window.location.href = `game_page/${gameplay_id}`
+
+
+    async function openGame() {
+        const response = await fetch('/user_game_state/', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrftoken,}});
+        if (!response.ok) {
+            console.error('Failed to start Game!!!', response.status);
+            return;
         }
+        const data = await response.json();
+        console.log(data, 'REsPONSe');
+        const gameplay_id = data.gameplay_id
+        window.location.href = `game_page/${gameplay_id}`
+    }
 
 
     async function leaveQ(){

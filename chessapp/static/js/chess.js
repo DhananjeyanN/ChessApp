@@ -35,22 +35,8 @@ function checkAlert(checkedKing) {
 }
 
 const csrftoken = getCookie('csrftoken');
-    // async function startGame() {
-    //     console.log('GAME STARTED');
-    //     const response = await fetch('/play_game/', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'X-CSRFToken': csrftoken
-    //         }
-    //     });
-    //     if (!response.ok) {
-    //         console.error('Failed to start the game', response.status);
-    //         return;
-    //     }
-    //     const data = await response.json();
-    //     console.log(data, 'REsPONSe');
-    // }
+const gameplay_id = getCookie('gameplay_id')
+    console.log(gameplay_id, 'GAME IDDDD')
 
     function findPiece(x, y) {
         // Simplified for demonstration
@@ -76,8 +62,31 @@ const csrftoken = getCookie('csrftoken');
         return `/static/images/${color}-${pieceType.toLowerCase()}.png`;
     }
 
-    function initializeBoard() {
-        let square_num = 0;
+    async function fetchGameState(){
+    const response = await fetch(`get_game_state/${gameplay_id}`)
+
+    if (!response) {
+            console.error('Failed Get Game State!!!', response.status);
+            return;
+        }
+
+    const data = await response.json()
+        return data.game_state
+    }
+
+
+
+
+    async function initializeBoard() {
+        const gamestate = await fetchGameState();
+        console.log(gamestate,'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
+        if (!gamestate) {
+            console.error('GAMESTATE NOT AVAILABLE!!!');
+            return;
+        }
+        const boardData = JSON.parse(gamestate).board;
+        console.log(boardData, 'HELLO')
+
         let className = "square-white";
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
@@ -86,14 +95,11 @@ const csrftoken = getCookie('csrftoken');
                 square.classList.add('square', className);
                 square.setAttribute("id", `square-${i}-${j}`);
                 board.appendChild(square);
-                square_num++;
-
-                const color = getColor(i);
-                const pieceType = findPiece(i, j);
-                let url = getUrl(color, pieceType);
-//                url = "{% static "+"'"+url+"'"+" %}"
-                console.log(url)
-                if (pieceType) {
+                const piece = boardData[i][j].piece;
+                if (piece) {
+                    const color = piece.color;
+                    const pieceType = piece.type;
+                    const url = getUrl(color, piece_type);
                     let image = document.createElement('img');
                     image.classList.add('piece');
                     image.setAttribute('id', `${pieceType}-${color}-${i}-${j}`);
@@ -101,6 +107,7 @@ const csrftoken = getCookie('csrftoken');
                     image.setAttribute('draggable', 'true');
                     square.appendChild(image);
                 }
+
             }
         }
         attachDragListeners();
@@ -185,10 +192,10 @@ const csrftoken = getCookie('csrftoken');
     return false;
     }
     }
-    async function set_board() {
-        board.innerHTML = '';
-        initializeBoard();
-        console.log('bean');
-    }
-    set_board();
+    // async function set_board() {
+    //     board.innerHTML = '';
+    //     initializeBoard();
+    //     console.log('bean');
+    // }
+    initializeBoard();
 });

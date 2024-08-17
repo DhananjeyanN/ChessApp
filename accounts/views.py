@@ -79,16 +79,6 @@ def profile(request, user_id):
     return render(request, 'accounts/profile.html', context=context)
 
 
-def home(request):
-    game_exists = False
-    if Player.objects.filter(user=request.user.id):
-        player = Player.objects.filter(user=request.user.id)[0]
-        if GamePlay.objects.filter(is_ready=False, white_player=player):
-            game_exists = True
-    print(game_exists)
-
-    return render(request, 'home.html', context={'game_exists':game_exists})
-
 @permission_classes([IsAuthenticated])
 def matches(request):
     return render(request, 'accounts/matches.html')

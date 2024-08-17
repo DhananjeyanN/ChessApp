@@ -13,9 +13,11 @@ class GamePlay(models.Model):
 
     def save_game(self, game):
         self.game_state = game.serialize()
+        print(self.game_state, 'SERIALIZED GAME')
         self.save()
 
     def load_game(self):
+        print(Game.deserialize(data=self.game_state), 'DESERIALIZED')
         return Game.deserialize(data=self.game_state)
 
     def __str__(self):

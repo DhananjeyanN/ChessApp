@@ -29,8 +29,8 @@ def play_game(request):
         return Response({'status': 'Success', 'gameplay_id': gameplay.id}, status=200)
 
 @login_required()
-def get_game_state(request, gameplay_id):
-    gameplay = get_object_or_404(GamePlay, id=gameplay_id)
+def get_game_state(request, game_id):
+    gameplay = get_object_or_404(GamePlay, id=game_id)
     return JsonResponse({'status':'success', 'game_state':gameplay.game_state})
 
 @csrf_exempt
@@ -60,7 +60,7 @@ def check_game_state(request):
 
 def index(request, game_id):
     gameplay = GamePlay.objects.get(id=game_id)
-    return render(request, 'index.html', context={'gameplay': gameplay})
+    return render(request, 'index.html', context={'gameplay': gameplay, 'gameplay_id':game_id})
 
 
 # @login_required
@@ -193,5 +193,4 @@ def home(request):
             game_exists = True
             gameplay_id = gameplay.id
     print(game_exists, gameplay_id)
-
-    return render(request, 'home.html', context={'game_exists': game_exists, 'gameplay_id':gameplay_id})
+    return render(request, 'home.html', context={'game_exists': game_exists})

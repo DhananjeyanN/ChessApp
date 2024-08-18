@@ -35,7 +35,6 @@ function checkAlert(checkedKing) {
 }
 
 const csrftoken = getCookie('csrftoken');
-const gameplay_id = getCookie('gameplay_id')
     console.log(gameplay_id, 'GAME IDDDD')
 
     function findPiece(x, y) {
@@ -85,7 +84,8 @@ const gameplay_id = getCookie('gameplay_id')
             return;
         }
         const boardData = JSON.parse(gamestate).board;
-        console.log(boardData, 'HELLO')
+        boardData = JSON.parse(boardData);
+        console.log(typeof boardData, 'HELLO');
 
         let className = "square-white";
         for (let i = 0; i < 8; i++) {
@@ -95,6 +95,7 @@ const gameplay_id = getCookie('gameplay_id')
                 square.classList.add('square', className);
                 square.setAttribute("id", `square-${i}-${j}`);
                 board.appendChild(square);
+                console.log(boardData[i][j], 'HHHHHHHHHHHHHHHHHHHHHHH')
                 const piece = boardData[i][j].piece;
                 if (piece) {
                     const color = piece.color;

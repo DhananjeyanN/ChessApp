@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(data, 'REsPONSe');
         const gameplay_id = data.gameplay_id
         if (data.status === 'joined_game') {
-            window.location.href = `game_page/${gameplay_id}`
+            window.location.href = `/game_page/${gameplay_id}`
         }
         else if (data.status === 'initialized_game') {
             waitForOponent(gameplay_id)
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             if (data.is_ready){
                 clearInterval(interval);
-                window.location.href = `game_page/${gameplay_id}`
+                window.location.href = `/game_page/${gameplay_id}`
             }
             },1000);
         }
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         console.log(data, 'REsPONSe');
         const gameplay_id = data.gameplay_id
-        window.location.href = `game_page/${gameplay_id}`
+        window.location.href = `/game_page/${gameplay_id}`
     }
 
 

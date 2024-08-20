@@ -43,7 +43,6 @@ def make_move(request):
         gameplay = GamePlay.objects.latest('id')
         game_instance = gameplay.load_game()
         game_instance.board.print_board()
-        print(source, dest, 'GHGHGHGHGHGHGHGHGHGHHHHHHHHH')
         if game_instance.move(source, dest):
             gameplay.save_game(game=game_instance)
             game_instance.board.print_board()
@@ -60,7 +59,13 @@ def check_game_state(request):
 
 def index(request, game_id):
     gameplay = GamePlay.objects.get(id=game_id)
-    return render(request, 'index.html', context={'gameplay': gameplay, 'gameplay_id':game_id})
+    player = Player.objects.filter(user=request.user)
+    print(player)
+    is_white = False
+    if gameplay.white_player == player[0]:
+        is_white = True
+    print(is_white, 'IS_WHITE')
+    return render(request, 'index.html', context={'gameplay': gameplay, 'gameplay_id':game_id, 'is_white':is_white})
 
 
 # @login_required

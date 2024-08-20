@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
-
+    console.log('Player Color', is_white);
 function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -180,7 +180,7 @@ const csrftoken = getCookie('csrftoken');
 
     async function movePiece(source, dest) {
     console.log(JSON.stringify({source:source, dest:dest}), 'SOURCE')
-    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({source:source, dest:dest})});
+    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({source:source, dest:dest, is_white:is_white})});
     const data = await response.json();
     console.log(data.status)
     if (data.status === 'success') {

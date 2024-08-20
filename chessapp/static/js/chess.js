@@ -83,9 +83,8 @@ const csrftoken = getCookie('csrftoken');
             console.error('GAMESTATE NOT AVAILABLE!!!');
             return;
         }
-        const boardData = JSON.parse(gamestate).board;
-        boardData = JSON.parse(boardData);
-        console.log(typeof boardData, 'HELLO');
+        const boardData = JSON.parse(JSON.parse(gamestate).board)
+        console.log( boardData, 'HELLO');
 
         let className = "square-white";
         for (let i = 0; i < 8; i++) {
@@ -96,11 +95,17 @@ const csrftoken = getCookie('csrftoken');
                 square.setAttribute("id", `square-${i}-${j}`);
                 board.appendChild(square);
                 console.log(boardData[i][j], 'HHHHHHHHHHHHHHHHHHHHHHH')
-                const piece = boardData[i][j].piece;
-                if (piece) {
+                let piece = boardData[i][j];
+                console.log(piece,'HJJHJHJHJHJ')
+                if (piece && JSON.parse(piece)['piece']) {
+                    piece = JSON.parse(piece);
+                    piece = JSON.parse(piece.piece);
+                    console.log(piece, 'PPPPPPPPPPPPPPPPPPPP')
                     const color = piece.color;
                     const pieceType = piece.type;
-                    const url = getUrl(color, piece_type);
+                    console.log(pieceType, 'PIECETYPE')
+                    const url = getUrl(color, pieceType);
+                    console.log(url, color, 'LLLLLLLLLLLLLLLLLLLLLLLL')
                     let image = document.createElement('img');
                     image.classList.add('piece');
                     image.setAttribute('id', `${pieceType}-${color}-${i}-${j}`);
@@ -108,7 +113,6 @@ const csrftoken = getCookie('csrftoken');
                     image.setAttribute('draggable', 'true');
                     square.appendChild(image);
                 }
-
             }
         }
         attachDragListeners();
@@ -129,6 +133,7 @@ const csrftoken = getCookie('csrftoken');
 
     function handleDragStart(event) {
         event.dataTransfer.setData("text/plain", event.target.id);
+        console.log('DRAG STARTED')
     }
 
     function handleDragOver(event) {

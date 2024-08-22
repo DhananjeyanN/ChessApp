@@ -1,28 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
-    const game_id = "{{ gameplay_id }}";
-    const socket = new WebSocket(`ws://${window.location.host}/ws/chess/${game_id}/`);
-    socket.on_message = function(e) {
-    const data = JSON.parse(e.data);
-    const source = data['source'];
-    const dest = data['dest'];
-    const piece = document.getElementById(`piece-${source.join('-')}`);
-    if (piece) {
-    piece.id = `piece-${dest.join('-')}`;
-    const targetSquare = document.getElementById(`piece-${dest.join('-')}`);
-    const sourceSquare = document.getElementById(`piece-${source.join('-')}`);
-    if (targetSquare) {
-    if (targetSquare.hasChildNodes()) {
-    targetSquare.innerHtml = '';
-    }
-    targetSquare.appendChild(piece);
-    sourceSquare.innerHtml = '';
-    }
-    }
-    };
-    socket.onclose = function(e) {
-    console.error('SOCKET CLOSED UNEXPECTEDLY');
-    }
     console.log('Player Color', is_white);
 function getCookie(name) {
         let cookieValue = null;
@@ -101,13 +78,14 @@ const csrftoken = getCookie('csrftoken');
 
     async function initializeBoard() {
         const gamestate = await fetchGameState();
-
+        console.log(gamestate,'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
         if (!gamestate) {
             console.error('GAMESTATE NOT AVAILABLE!!!');
             return;
         }
-
         const boardData = JSON.parse(JSON.parse(gamestate).board)
+        console.log( boardData, 'HELLO');
+
         let className = "square-white";
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
@@ -116,13 +94,18 @@ const csrftoken = getCookie('csrftoken');
                 square.classList.add('square', className);
                 square.setAttribute("id", `square-${i}-${j}`);
                 board.appendChild(square);
+                console.log(boardData[i][j], 'HHHHHHHHHHHHHHHHHHHHHHH')
                 let piece = boardData[i][j];
+                console.log(piece,'HJJHJHJHJHJ')
                 if (piece && JSON.parse(piece)['piece']) {
                     piece = JSON.parse(piece);
                     piece = JSON.parse(piece.piece);
+                    console.log(piece, 'PPPPPPPPPPPPPPPPPPPP')
                     const color = piece.color;
                     const pieceType = piece.type;
+                    console.log(pieceType, 'PIECETYPE')
                     const url = getUrl(color, pieceType);
+                    console.log(url, color, 'LLLLLLLLLLLLLLLLLLLLLLLL')
                     let image = document.createElement('img');
                     image.classList.add('piece');
                     image.setAttribute('id', `${pieceType}-${color}-${i}-${j}`);
@@ -157,28 +140,7 @@ const csrftoken = getCookie('csrftoken');
         event.preventDefault();
     }
 
-//    async function handleDrop(event) {
-//        event.preventDefault();
-//        let source = event.dataTransfer.getData('text/plain').split('-').slice(1, 3).map(Number);
-//        let dest = event.target.id.split('-').slice(1, 3).map(Number);if (dest.length !== 2) {
-//            dest =event.target.closest('.square').id.split('-').slice(1, 3).map(Number);
-//        }
-//        const piece = document.getElementById(`piece-${source.join('-')}`);
-//        const targetSquare = document.getElementById(`square-${dest.join('-')}`);
-//            if (piece && targetSquare) {
-//            targetSquare.innerHTML = '';             targetSquare.appendChild(piece);
-//            piece.id = `piece-${dest.join('-')}`;
-//            const sourceSquare = document.getElementById(`square-${source.join('-')}`);
-//            sourceSquare.innerHTML = '';
-//            socket.send(JSON.stringify({
-//                'source': source,
-//                'dest': dest
-//            }));
-//        }
-//    }
-
     async function handleDrop(event) {
-        event.preventDefault()
         let source = event.dataTransfer.getData('text/plain').split('-')
         let dest = event.target.id.split('-')
         let source1 = source
@@ -193,6 +155,7 @@ const csrftoken = getCookie('csrftoken');
         }
         console.log(source, dest)
 
+        event.preventDefault();
         const id = event.dataTransfer.getData('text/plain');
         const draggableElement = document.getElementById(id);
         let dropTarget = event.target;
@@ -217,7 +180,7 @@ const csrftoken = getCookie('csrftoken');
 
     async function movePiece(source, dest) {
     console.log(JSON.stringify({source:source, dest:dest}), 'SOURCE')
-    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({source:source, dest:dest, is_white:is_white})});
+    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({source:source, dest:dest})});
     const data = await response.json();
     console.log(data.status)
     if (data.status === 'success') {

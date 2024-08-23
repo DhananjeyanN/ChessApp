@@ -1,53 +1,61 @@
 import json
-
-from channels.db import database_sync_to_async
-from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer
+from asgiref.sync import async_to_sync
 from .models import GamePlay
-from gamelogic import Game
-from .views import gameplay
+from .gamelogic import Game
 
-
-class ChessConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
+class ChessConsumer(WebsocketConsumer):
+    def connect(self):
         self.game_id = self.scope['url_route']['kwargs']['game_id']
         self.game_group_name = f'game_{self.game_id}'
-        await self.channel_layer.group_add(self.game_group_name, self.channel_name)
-        await self.accept()
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
+        # Join game group
+        async_to_sync(self.channel_layer.group_add)(
+            self.game_group_name,
+            self.channel_name
+        )
 
-    async def recieve(self, text_data):
+        self.accept()
+
+    def disconnect(self, close_code):
+        # Leave game group
+        async_to_sync(self.channel_layer.group_discard)(
+            self.game_group_name,
+            self.channel_name
+        )
+
+    def receive(self, text_data):
         text_data_json = json.loads(text_data)
         source = text_data_json['source']
         dest = text_data_json['dest']
-        game = self.get_game()
+
+        # Process move in the game state
+        game = GamePlay.objects.get(id=self.game_id)
         game_instance = Game.deserialize(game.game_state)
-        if game_instance.move(source=source,dest=dest):
-            game.game_state = game_instance.serialize()
-            await game.save_game()
-            await self.channel_layer.group_send(
-                self.game_group_name, {
-                    'type':'move_made',
-                    'source':source,
-                    'dest':dest
+
+        if game_instance.move(source=source, dest=dest):
+            game.save_game(game_instance)
+
+            # Send move to group
+            async_to_sync(self.channel_layer.group_send)(
+                self.game_group_name,
+                {
+                    'type': 'move_made',
+                    'source': source,
+                    'dest': dest,
                 }
             )
         else:
-            await self.send(text_data=json.dumps({
-                'status':'failed....'
+            self.send(text_data=json.dumps({
+                'status': 'failed'
             }))
 
-    async def get_game(self):
-        return await database_sync_to_async(gameplay.objects.get)(id=self.game_id)
-
-    async def move_made(self, event):
+    def move_made(self, event):
         source = event['source']
         dest = event['dest']
-        await self.send(text_data=json.dumps({
-            'source':source,
-            'dest':dest
-        }))
 
-    async def save_game(self, game):
-        await database_sync_to_async(game.save)()
+        # Send move to WebSocket
+        self.send(text_data=json.dumps({
+            'source': source,
+            'dest': dest,
+        }))

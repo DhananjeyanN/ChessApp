@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to fetch game state:', error);
         }
     }
-
+//    dd
     async function pollGameState() {
         const gamestate = await fetchGameState();
         if (gamestate && gamestate !== lastGameState) {

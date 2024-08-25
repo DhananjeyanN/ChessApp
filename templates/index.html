@@ -10,7 +10,11 @@
 </head>
 <body>
     <div class="Board" id="Board"></div>
-    <script> var csrftoken = "{{ csrf_token }}"; var gameplay_id = "{{ gameplay_id }}"; var is_white = "{{ is_white }}";</script>
+    <script> var csrftoken = "{{ csrf_token|escapejs }}"; var game_id = "{{ gameplay_id|escapejs }}"; var white = "{{ is_white|escapejs }}"; </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<p class="content">Gameplay ID: {{ gameplay_id }}</p>
+<p class="content">Is White: {{ is_white }}</p>
+<script src="{% static 'js/chess.js' %}"></script>
 </body>
 {% endblock %}
+

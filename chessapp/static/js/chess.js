@@ -1,79 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     const board = document.getElementById('Board');
-    const game_id = "{{ gameplay_id }}";
-    const socket = new WebSocket(`ws://${window.location.host}/ws/chess/${game_id}/`);
-    socket.on_message = function(e) {
-    const data = JSON.parse(e.data);
-    const source = data['source'];
-    const dest = data['dest'];
-    const piece = document.getElementById(`piece-${source.join('-')}`);
-    if (piece) {
-    piece.id = `piece-${dest.join('-')}`;
-    const targetSquare = document.getElementById(`piece-${dest.join('-')}`);
-    const sourceSquare = document.getElementById(`piece-${source.join('-')}`);
-    if (targetSquare) {
-    if (targetSquare.hasChildNodes()) {
-    targetSquare.innerHtml = '';
-    }
-    targetSquare.appendChild(piece);
-    sourceSquare.innerHtml = '';
-    }
-    }
-    };
-    socket.onclose = function(e) {
-    console.error('SOCKET CLOSED UNEXPECTEDLY');
-    }
-    console.log('Player Color', is_white);
-function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
+    const gameplay_id = game_id;
+    const is_white = white;
+    alert('hh')
+    const pollInterval = 3000; // Poll every 3 seconds
+    let lastGameState = null;
+    console.log('BEANNNN')
+    alert('BEANNNN')
 
-function checkmateAlert(winner) {
-    Swal.fire({
-    title:'Checkmate!!!',
-    text: `${winner} has won the game!!!`,
-    icon: 'success',
-    confirmButtonText:'Ok'
-    });
-}
-
-function checkAlert(checkedKing) {
-    Swal.fire({
-    title:'Check',
-    text: `${checkedKing} is-in-check`,
-    icon: 'warning',
-    confirmButtonText:'Ok'
-    });
-}
-
-const csrftoken = getCookie('csrftoken');
-    console.log(gameplay_id, 'GAME IDDDD')
-
-    function findPiece(x, y) {
-        // Simplified for demonstration
-        if (x === 1 || x === 6) return 'pawn';  // Pawns
-        else if (x === 0 || x === 7) {
-            if (y === 0 || y === 7) return 'rook';  // Rooks
-            else if (y === 1 || y === 6) return 'knight';  // Knights
-            else if (y === 2 || y === 5) return 'bishop';  // Bishops
-            else if (y === 3) return 'queen';  // Queen
-            else if (y === 4) return 'king';  // King
-        }
-        return null;
-    }
-
-    function getColor(x) {
+        function getColor(x) {
         if (x < 2) return 'white';
         else if (x > 5) return 'black';
         return null;
@@ -83,21 +19,59 @@ const csrftoken = getCookie('csrftoken');
         if (!pieceType) return '';
         return `/static/images/${color}-${pieceType.toLowerCase()}.png`;
     }
-
-    async function fetchGameState(){
-    const response = await fetch(`get_game_state/${gameplay_id}`)
-
-    if (!response) {
-            console.error('Failed Get Game State!!!', response.status);
-            return;
+    async function fetchGameState() {
+        try {
+            const url = `/game_page/get_game_state/${gameplay_id}`;
+            console.log('Fetching game state from URL:', url);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to get game state: ${response.status}`);
+            }
+            const data = await response.json();
+            return data.game_state;
+        } catch (error) {
+            console.error('Failed to fetch game state:', error);
         }
-
-    const data = await response.json()
-        return data.game_state
     }
 
+    async function pollGameState() {
+        const gamestate = await fetchGameState();
+        if (gamestate && gamestate !== lastGameState) {
+            lastGameState = gamestate;
+            updateBoard(JSON.parse(gamestate));
+        } else if (!gamestate) {
+            console.error('Game state not available!');
+        }
+    }
 
+    function updateBoard(boardData) {
+        board.innerHTML = ''; // Clear the current board
+        boardData = JSON.parse(JSON.parse(gamestate).board)
+        let className = "square-white";
+        // Rebuild the board based on the new state
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const square = document.createElement('div');
+                const className = (i + j) % 2 === 0 ? 'square-white' : 'square-green';
+                square.classList.add('square', className);
+                square.setAttribute('id', `square-${i}-${j}`);
+                board.appendChild(square);
 
+                const piece = boardData[i][j];
+                if (piece && piece.piece) {
+                    const img = document.createElement('img');
+                    img.classList.add('piece');
+                    img.setAttribute('id', `piece-${piece.piece.type}-${piece.piece.color}-${i}-${j}`);
+                    img.setAttribute('src', `/static/images/${piece.piece.color}-${piece.piece.type}.png`);
+                    img.setAttribute('draggable', 'true');
+                    square.appendChild(img);
+                }
+            }
+        }
+
+        // Reattach event listeners if necessary
+        attachDragListeners();
+    }
 
     async function initializeBoard() {
         const gamestate = await fetchGameState();
@@ -149,96 +123,70 @@ const csrftoken = getCookie('csrftoken');
     }
 
     function handleDragStart(event) {
-        event.dataTransfer.setData("text/plain", event.target.id);
-        console.log('DRAG STARTED')
+        event.dataTransfer.setData('text/plain', event.target.id);
+        console.log('Drag started');
     }
 
     function handleDragOver(event) {
         event.preventDefault();
     }
 
-//    async function handleDrop(event) {
-//        event.preventDefault();
-//        let source = event.dataTransfer.getData('text/plain').split('-').slice(1, 3).map(Number);
-//        let dest = event.target.id.split('-').slice(1, 3).map(Number);if (dest.length !== 2) {
-//            dest =event.target.closest('.square').id.split('-').slice(1, 3).map(Number);
-//        }
-//        const piece = document.getElementById(`piece-${source.join('-')}`);
-//        const targetSquare = document.getElementById(`square-${dest.join('-')}`);
-//            if (piece && targetSquare) {
-//            targetSquare.innerHTML = '';             targetSquare.appendChild(piece);
-//            piece.id = `piece-${dest.join('-')}`;
-//            const sourceSquare = document.getElementById(`square-${source.join('-')}`);
-//            sourceSquare.innerHTML = '';
-//            socket.send(JSON.stringify({
-//                'source': source,
-//                'dest': dest
-//            }));
-//        }
-//    }
-
     async function handleDrop(event) {
-        event.preventDefault()
-        let source = event.dataTransfer.getData('text/plain').split('-')
-        let dest = event.target.id.split('-')
-        let source1 = source
-        source = source.slice(2,4).map(Number)
-        if (dest[0] == 'square') {
-        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(1,3).join('-')
-        dest = dest.slice(1,3).map(Number)
-        }
-        else {
-        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(2,4).join('-')
-        dest = dest.slice(2,4).map(Number)
-        }
-        console.log(source, dest)
+        event.preventDefault();
+        let source = event.dataTransfer.getData('text/plain').split('-').slice(2, 4).map(Number);
+        let dest = event.target.id.split('-').slice(1, 3).map(Number);
 
         const id = event.dataTransfer.getData('text/plain');
         const draggableElement = document.getElementById(id);
         let dropTarget = event.target;
-        if(!dropTarget.classList.contains('square')) {
+
+        if (!dropTarget.classList.contains('square')) {
             dropTarget = dropTarget.closest('.square');
         }
-        const move_successful = await movePiece(source, dest)
-        console.log(move_successful, '24')
+
+        const move_successful = await movePiece(source, dest);
 
         if (!move_successful) {
-            console.log('MOVE NOT SUCCESSFUL')
-        }
-        else {
-        console.log('Draggable Element', draggableElement)
-        draggableElement.id = trueDest
-        if(dropTarget.hasChildNodes()) {
-            dropTarget.innerHTML = '';
-        }
-        dropTarget.appendChild(draggableElement);
+            console.log('Move not successful');
+        } else {
+            console.log('Move successful');
+            draggableElement.id = `piece-${id.split('-')[1]}-${id.split('-')[2]}-${dest.join('-')}`;
+            if (dropTarget.hasChildNodes()) {
+                dropTarget.innerHTML = '';
+            }
+            dropTarget.appendChild(draggableElement);
         }
     }
 
     async function movePiece(source, dest) {
-    console.log(JSON.stringify({source:source, dest:dest}), 'SOURCE')
-    const response = await fetch('/move/', {method:'POST', headers:{'Content-Type':'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({source:source, dest:dest, is_white:is_white})});
-    const data = await response.json();
-    console.log(data.status)
-    if (data.status === 'success') {
-        if (data.check) {
-        console.log('INCHECK', data)
-        checkAlert(data.checked_king);
+        try {
+            const response = await fetch('/move/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+                body: JSON.stringify({ source, dest, is_white })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                if (data.check) {
+                    checkAlert(data.checked_king);
+                }
+                if (data.checkmate) {
+                    checkmateAlert(data.winner);
+                }
+                return true;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            console.error('Failed to move piece:', error);
+            return false;
         }
-        if (data.checkmate) {
-        console.log('INCHECKMATE', data)
-        checkmateAlert(data.winner);
-        }
-    return true;
     }
-    else {
-    return false;
-    }
-    }
-    // async function set_board() {
-    //     board.innerHTML = '';
-    //     initializeBoard();
-    //     console.log('bean');
-    // }
+
+    // Start polling the server for game state updates
+    setInterval(pollGameState, pollInterval);
+
+    // Initialize the board when the page loads
     initializeBoard();
 });

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+{% load static %}
 <h1 style="color:gold;">Home</h1>
 {% if request.user.is_authenticated %}
 <button id="join-game" style="display: none">Join Game</button>
@@ -7,6 +8,7 @@
 <button id="prev-game" style="display: none">Join Previous Game</button>
 <button id="quit-game" style="display: none">Quit Game</button>
 {% endif %}
+<script src="{% static 'js/home.js' %}"></script>
 {% endblock %}
 
 <!--set button to inline-block to display in js-->

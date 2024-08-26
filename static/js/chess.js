@@ -1,14 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     const board = document.getElementById('Board');
-    const gameplay_id = gameplay_id;
-    const is_white = is_white;
-    const csrftoken = getCookie('csrftoken');
+    const gameplay_id = document.getElementById('gameplay_id').value;
+    const is_white = document.getElementById('is_white').value;
+    var boardData = null;
+    console.log(gameplay_id)
+    alert('hh')
+    const pollInterval = 3000; // Poll every 3 seconds
     let lastGameState = null;
-    const pollInterval = 3000;
+    console.log('BEANNNN')
+    alert('BEANNNN')
 
-    console.log('Gameplay ID:', gameplay_id);  // Check this output in the console
-    console.log('Is White:', is_white);
+        function getColor(x) {
+        if (x < 2) return 'white';
+        else if (x > 5) return 'black';
+        return null;
+    }
 
+    function getUrl(color, pieceType) {
+        if (!pieceType) return '';
+        return `/static/images/${color}-${pieceType.toLowerCase()}.png`;
+    }
     async function fetchGameState() {
         try {
             const url = `/game_page/get_game_state/${gameplay_id}`;
@@ -23,22 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to fetch game state:', error);
         }
     }
-
+//    dd
     async function pollGameState() {
         const gamestate = await fetchGameState();
-        if (!gamestate) {
-            console.error('Game state not available!');
-            return;
-        }
-
-        if (gamestate !== lastGameState) {
+        if (gamestate && gamestate !== lastGameState) {
             lastGameState = gamestate;
             updateBoard(JSON.parse(gamestate));
+        } else if (!gamestate) {
+            console.error('Game state not available!');
         }
     }
 
     function updateBoard(boardData) {
-        board.innerHTML = '';
+        board.innerHTML = ''; // Clear the current board
+//        boardData = JSON.parse(JSON.parse(gamestate).board)
+        console.log(boardData)
+        let className = "square-white";
+        // Rebuild the board based on the new state
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 const square = document.createElement('div');
@@ -59,6 +72,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Reattach event listeners if necessary
+        attachDragListeners();
+    }
+
+    async function initializeBoard() {
+        const gamestate = await fetchGameState();
+
+        if (!gamestate) {
+            console.error('GAMESTATE NOT AVAILABLE!!!');
+            return;
+        }
+        boardData = JSON.parse(JSON.parse(gamestate).board);
+        let className = "square-white";
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const square = document.createElement("div");
+                className = (i + j) % 2 === 0 ? "square-white" : "square-green";
+                square.classList.add('square', className);
+                square.setAttribute("id", `square-${i}-${j}`);
+                board.appendChild(square);
+                let piece = boardData[i][j];
+                if (piece && JSON.parse(piece)['piece']) {
+                    piece = JSON.parse(piece);
+                    piece = JSON.parse(piece.piece);
+                    const color = piece.color;
+                    const pieceType = piece.type;
+                    const url = getUrl(color, pieceType);
+                    let image = document.createElement('img');
+                    image.classList.add('piece');
+                    image.setAttribute('id', `${pieceType}-${color}-${i}-${j}`);
+                    image.setAttribute('src', url);
+                    image.setAttribute('draggable', 'true');
+                    square.appendChild(image);
+                }
+            }
+        }
         attachDragListeners();
     }
 
@@ -137,6 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Start polling the server for game state updates
     setInterval(pollGameState, pollInterval);
+
+    // Initialize the board when the page loads
     initializeBoard();
 });

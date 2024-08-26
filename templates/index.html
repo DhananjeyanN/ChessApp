@@ -9,8 +9,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 <body>
+    <input type="hidden" id="gameplay_id" value="{{ gameplay_id }}">
+    <input type="hidden" id="is_white" value="{{ is_white }}">
     <div class="Board" id="Board"></div>
-    <script> var csrftoken = "{{ csrf_token|escapejs }}"; var game_id = "{{ gameplay_id|escapejs }}"; var white = "{{ is_white|escapejs }}"; </script>
+    <script> var csrftoken = "{{ csrf_token|escapejs }}";</script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <p class="content">Gameplay ID: {{ gameplay_id }}</p>
 <p class="content">Is White: {{ is_white }}</p>

@@ -1,13 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const board = document.getElementById('Board');
-    const gameplay_id = game_id;
-    const is_white = white;
-    alert('hh')
-    const pollInterval = 3000; // Poll every 3 seconds
+    const gameplay_id = document.getElementById('gameplay_id').value;
+    const is_white = document.getElementById('is_white').value;
+    var boardData = null;
+    const pollInterval = 1; // Poll every 3 seconds
     let lastGameState = null;
-    console.log('BEANNNN')
-    alert('BEANNNN')
 
         function getColor(x) {
         if (x < 2) return 'white';
@@ -38,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const gamestate = await fetchGameState();
         if (gamestate && gamestate !== lastGameState) {
             lastGameState = gamestate;
-            updateBoard(JSON.parse(gamestate));
+            updateBoard(JSON.parse(JSON.parse(gamestate).board));
         } else if (!gamestate) {
             console.error('Game state not available!');
         }
@@ -46,25 +44,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateBoard(boardData) {
         board.innerHTML = ''; // Clear the current board
-        boardData = JSON.parse(JSON.parse(gamestate).board)
+        console.log(boardData, 'Bean')
         let className = "square-white";
         // Rebuild the board based on the new state
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
-                const square = document.createElement('div');
-                const className = (i + j) % 2 === 0 ? 'square-white' : 'square-green';
+                const square = document.createElement("div");
+                className = (i + j) % 2 === 0 ? "square-white" : "square-green";
                 square.classList.add('square', className);
-                square.setAttribute('id', `square-${i}-${j}`);
+                square.setAttribute("id", `square-${i}-${j}`);
                 board.appendChild(square);
-
-                const piece = boardData[i][j];
-                if (piece && piece.piece) {
-                    const img = document.createElement('img');
-                    img.classList.add('piece');
-                    img.setAttribute('id', `piece-${piece.piece.type}-${piece.piece.color}-${i}-${j}`);
-                    img.setAttribute('src', `/static/images/${piece.piece.color}-${piece.piece.type}.png`);
-                    img.setAttribute('draggable', 'true');
-                    square.appendChild(img);
+                let piece = boardData[i][j];
+                if (piece && JSON.parse(piece)['piece']) {
+                    piece = JSON.parse(piece);
+                    piece = JSON.parse(piece.piece);
+                    const color = piece.color;
+                    const pieceType = piece.type;
+                    const url = getUrl(color, pieceType);
+                    let image = document.createElement('img');
+                    image.classList.add('piece');
+                    image.setAttribute('id', `${pieceType}-${color}-${i}-${j}`);
+                    image.setAttribute('src', url);
+                    image.setAttribute('draggable', 'true');
+                    square.appendChild(image);
                 }
             }
         }
@@ -80,8 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('GAMESTATE NOT AVAILABLE!!!');
             return;
         }
-
-        const boardData = JSON.parse(JSON.parse(gamestate).board)
+        boardData = JSON.parse(JSON.parse(gamestate).board);
         let className = "square-white";
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {

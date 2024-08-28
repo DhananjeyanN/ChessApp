@@ -36,11 +36,14 @@ def get_game_state(request, game_id):
 @csrf_exempt
 @api_view(['POST'])
 def make_move(request):
+    print(request.data)
     serializer = MoveSerializer(data=request.data)
+    print('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
     if serializer.is_valid():
         current_player = Player.objects.filter(user=request.user)[0]
         source = tuple(serializer.validated_data['source'])
         dest = tuple(serializer.validated_data['dest'])
+        print(source, dest)
         gameplay = GamePlay.objects.latest('id')
         game_instance = gameplay.load_game()
         game_instance.board.print_board()
@@ -54,9 +57,9 @@ def make_move(request):
             if game_instance.move(source, dest):
                 gameplay.save_game(game=game_instance)
                 game_instance.board.print_board()
-                return Response({'status': 'success'}, status=200)
+                return Response({'status': 'success', 'check':game_instance.check, 'checkmate':game_instance.checkmate, 'checked_king':game_instance.turn}, status=200)
             else:
-                return Response({'status': 'fail'}, status=400)
+                return Response({'status': 'fail', 'check':game_instance.check, 'checkmate':game_instance.checkmate, 'checked_king':game_instance.turn}, status=400)
         else:
             return Response({'status': 'fail'}, status=400)
     return Response(serializer.errors, status=400)

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const gameplay_id = document.getElementById('gameplay_id').value;
     const is_white = document.getElementById('is_white').value;
     var boardData = null;
-    const pollInterval = 1; // Poll every 3 seconds
+    const pollInterval = 1000; // Poll every 3 seconds
     let lastGameState = null;
 
         function getColor(x) {
@@ -132,32 +132,61 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
     }
 
-    async function handleDrop(event) {
-        event.preventDefault();
-        let source = event.dataTransfer.getData('text/plain').split('-').slice(2, 4).map(Number);
-        let dest = event.target.id.split('-').slice(1, 3).map(Number);
+        async function handleDrop(event) {
+        event.preventDefault()
+        let source = event.dataTransfer.getData('text/plain').split('-')
+        let dest = event.target.id.split('-')
+        let source1 = source
+        source = source.slice(2,4).map(Number)
+        if (dest[0] == 'square') {
+        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(1,3).join('-')
+        dest = dest.slice(1,3).map(Number)
+        }
+        else {
+        trueDest = source1.slice(0,2).join('-') + '-' + dest.slice(2,4).join('-')
+        dest = dest.slice(2,4).map(Number)
+        }
+        console.log(source, dest)
 
         const id = event.dataTransfer.getData('text/plain');
         const draggableElement = document.getElementById(id);
         let dropTarget = event.target;
-
-        if (!dropTarget.classList.contains('square')) {
+        if(!dropTarget.classList.contains('square')) {
             dropTarget = dropTarget.closest('.square');
         }
-
-        const move_successful = await movePiece(source, dest);
+        const move_successful = await movePiece(source, dest)
+        console.log(move_successful, '24')
 
         if (!move_successful) {
-            console.log('Move not successful');
-        } else {
-            console.log('Move successful');
-            draggableElement.id = `piece-${id.split('-')[1]}-${id.split('-')[2]}-${dest.join('-')}`;
-            if (dropTarget.hasChildNodes()) {
-                dropTarget.innerHTML = '';
-            }
-            dropTarget.appendChild(draggableElement);
+            console.log('MOVE NOT SUCCESSFUL')
+        }
+        else {
+        console.log('Draggable Element', draggableElement)
+        draggableElement.id = trueDest
+        if(dropTarget.hasChildNodes()) {
+            dropTarget.innerHTML = '';
+        }
+        dropTarget.appendChild(draggableElement);
         }
     }
+
+    function checkmateAlert(winner) {
+    Swal.fire({
+    title:'Checkmate!!!',
+    text: `${winner} has won the game!!!`,
+    icon: 'success',
+    confirmButtonText:'Ok'
+    });
+}
+
+function checkAlert(checkedKing) {
+    Swal.fire({
+    title:'Check',
+    text: `${checkedKing} is-in-check`,
+    icon: 'warning',
+    confirmButtonText:'Ok'
+    });
+}
 
     async function movePiece(source, dest) {
         try {
@@ -169,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             if (data.status === 'success') {
+                console.log('DATTTTTTTA', data);
                 if (data.check) {
                     checkAlert(data.checked_king);
                 }

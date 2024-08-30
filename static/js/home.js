@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         console.log(data, 'REsPONSe');
         const gameplay_id = data.gameplay_id
+        console.log(gameplay_id)
         if (data.status === 'no_game') {
             joinGame.style.display = 'inline-block';
         }
@@ -40,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else if (data.status === 'loading') {
             leaveGame.style.display = 'inline-block'
+
+            waitForOponent(gameplay_id)
         }
     }
 
@@ -52,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const data = await response.json();
         console.log(data, 'REsPONSe');
+        console.log(data.status)
         const gameplay_id = data.gameplay_id
         if (data.status === 'joined_game') {
             window.location.href = `/game_page/${gameplay_id}`
@@ -67,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function waitForOponent(gameplay_id){
         const interval = setInterval(async()=>{
             const response = await fetch('/check_status/', {method:'POST', headers:{'Content-Type': 'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({gameplay_id:gameplay_id})});
-
+            check_status();
             if (!response) {
                 console.error('Failed To Check Game Status!!!', response.status);
                 return;
@@ -132,8 +136,18 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('PREV')
     openGame();
     });
+
     quitGame.addEventListener('click', ()=>{
         console.log('QUIT')
     quitG();
     });
+
+    function statusAlert() {
+    Swal.fire({
+    title:'Waiting For Opponent',
+    text: 'Game is Loading',
+    icon: 'warning',
+    confirmButtonText:'Ok'
+    });
+}
 });

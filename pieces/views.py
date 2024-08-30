@@ -6,10 +6,8 @@ from django.contrib import messages
 from .gamelogic import Game
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from accounts.forms import AddUserToQueueForm
-from .models import GamePlay, Player, UserQueue
+from .models import GamePlay, Player
 from .serializers import MoveSerializer
-from .utils import reorder_queue
 
 gameplay = None
 
@@ -38,7 +36,6 @@ def get_game_state(request, game_id):
 def make_move(request):
     print(request.data)
     serializer = MoveSerializer(data=request.data)
-    print('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB')
     if serializer.is_valid():
         current_player = Player.objects.filter(user=request.user)[0]
         source = tuple(serializer.validated_data['source'])
@@ -57,6 +54,9 @@ def make_move(request):
             if game_instance.move(source, dest):
                 gameplay.save_game(game=game_instance)
                 game_instance.board.print_board()
+                if game_instance.checkmate:
+                    gameplay.completed = True
+                    gameplay.save()
                 return Response({'status': 'success', 'check':game_instance.check, 'checkmate':game_instance.checkmate, 'checked_king':game_instance.turn}, status=200)
             else:
                 return Response({'status': 'fail', 'check':game_instance.check, 'checkmate':game_instance.checkmate, 'checked_king':game_instance.turn}, status=400)
@@ -79,28 +79,6 @@ def index(request, game_id):
         is_white = True
     print(is_white, 'IS_WHITE')
     return render(request, 'index.html', context={'gameplay': gameplay, 'gameplay_id':game_id, 'is_white':is_white})
-
-
-# @login_required
-# @api_view(['POST'])
-# @csrf_exempt
-# def join_game(request):
-#     user=request.user
-#     gameplay = GamePlay.objects.filter(is_ready=False).first()
-#     if gameplay and gameplay.white_player and not gameplay.black_player:
-#         gameplay.black_player = Player.objects.create(user=user, is_white = False)
-#         gameplay.is_ready = True
-#         gameplay.save()
-#         return JsonResponse({'status':'joined_game','gameplay_id':gameplay.id},status=200)
-#     else:
-#         white_player = Player.objects.create(user=user,is_white=True)
-#         game = Game()
-#         game.board.initialize_board()
-#         new_gameplay = GamePlay()
-#         new_gameplay.white_player = white_player
-#         new_gameplay.save_game(game=game)
-#         new_gameplay.save()
-#         return JsonResponse({'status':'initialized_game','gameplay_id':new_gameplay.id}, status=200)
 
 
 @login_required
@@ -207,8 +185,9 @@ def home(request):
     if Player.objects.filter(user=request.user.id):
         player = Player.objects.filter(user=request.user.id)[0]
         gameplay = GamePlay.objects.filter(is_ready=False, white_player=player)
-        if gameplay:
+        if gameplay and len(gameplay) != 0:
             game_exists = True
-            gameplay_id = gameplay.id
+            messages.warning(request, 'Game is Waiting for Opponent')
+            gameplay_id = gameplay[0].id
     print(game_exists, gameplay_id)
     return render(request, 'home.html', context={'game_exists': game_exists})

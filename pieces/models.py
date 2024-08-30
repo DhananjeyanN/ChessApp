@@ -21,12 +21,5 @@ class GamePlay(models.Model):
         return Game.deserialize(data=self.game_state)
 
     def __str__(self):
-        return f'White: {self.white_player}, Black: {self.black_player}, Game State: {self.game_state}'
-
-class UserQueue(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    position = models.PositiveIntegerField()
-
-    def __str__(self):
-        return f'Username: {self.user.username}, Position: {self.position}'
+        return f'White: {self.white_player}, Black: {self.black_player}, Game State: {self.game_state}, GamePlay ID: {self.id}'
 

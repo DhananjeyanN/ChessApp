@@ -3,6 +3,7 @@
 {% load static %}
 <h1 style="color:gold;">Home</h1>
 {% if request.user.is_authenticated %}
+<h2 class='content' id="WFO" style="display: none; text-align:center; padding:20px; border:dotted 2px;">Game Is Loading...</h2>
 <button id="join-game" style="display: none">Join Game</button>
 <button id="leave-game" style="display: none">Leave Game</button>
 <button id="prev-game" style="display: none">Join Previous Game</button>

@@ -5,13 +5,11 @@ from django.contrib.auth.models import User
 from accounts.models import SiteProfile
 from django.contrib import messages, auth
 from rest_framework.authtoken.models import Token
-from accounts.forms import RegistrationForm, ProfileForm, LoginForm, AddUserToQueueForm
+from accounts.forms import RegistrationForm, ProfileForm, LoginForm
 from accounts.models import Player
 import requests
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-
-from pieces.models import UserQueue, GamePlay
 
 
 # Create your views here.

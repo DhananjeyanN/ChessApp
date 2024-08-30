@@ -198,6 +198,7 @@ function checkAlert(checkedKing) {
 
             const data = await response.json();
             if (data.status === 'success') {
+                console.log('DATTTTTTTA', data);
                 if (data.check) {
                     checkAlert(data.checked_king);
                 }

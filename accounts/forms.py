@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 
 from accounts.models import Player
-from pieces.models import UserQueue
 
 
 class RegistrationForm(forms.ModelForm):
@@ -55,7 +54,3 @@ class ProfileForm(forms.ModelForm):
         fields = ['avatar', 'dob']
 
 
-class AddUserToQueueForm(forms.ModelForm):
-    class Meta:
-        model = UserQueue
-        fields = ['user']

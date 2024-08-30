@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const leaveGame = document.getElementById('leave-game')
     const prevGame = document.getElementById('prev-game')
     const quitGame = document.getElementById('quit-game')
+    const message = document.getElementById('WFO')
 
     function getCookies(name) {
         let cookieValue = null;
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         console.log(data, 'REsPONSe');
         const gameplay_id = data.gameplay_id
+        console.log(gameplay_id)
         if (data.status === 'no_game') {
             joinGame.style.display = 'inline-block';
         }
@@ -40,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else if (data.status === 'loading') {
             leaveGame.style.display = 'inline-block'
+            message.style.display = 'block'
+            waitForOponent(gameplay_id)
         }
     }
 
@@ -52,12 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const data = await response.json();
         console.log(data, 'REsPONSe');
+        console.log(data.status)
         const gameplay_id = data.gameplay_id
         if (data.status === 'joined_game') {
             window.location.href = `/game_page/${gameplay_id}`
         }
         else if (data.status === 'initialized_game') {
             waitForOponent(gameplay_id)
+            joinGame.style.display = 'none'
+            leaveGame.style.display = 'inline-block'
+            message.style.display = 'block'
+
         }
         else if (data.status === 'no_game_found') {
             console.log('NO GAME FOUND FOR BLACK')
@@ -67,7 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function waitForOponent(gameplay_id){
         const interval = setInterval(async()=>{
             const response = await fetch('/check_status/', {method:'POST', headers:{'Content-Type': 'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({gameplay_id:gameplay_id})});
-
             if (!response) {
                 console.error('Failed To Check Game Status!!!', response.status);
                 return;
@@ -126,14 +134,26 @@ document.addEventListener('DOMContentLoaded', () => {
     leaveGame.addEventListener('click', ()=>{
         console.log('LEAVE')
     leaveQ();
+    message.style.display = 'none'
     });
 
     prevGame.addEventListener('click', ()=>{
         console.log('PREV')
     openGame();
     });
+
     quitGame.addEventListener('click', ()=>{
         console.log('QUIT')
     quitG();
     });
+
+    function statusAlert() {
+    console.log('ALERT!!!')
+    Swal.fire({
+    title:'Waiting For Opponent',
+    text: 'Game is Loading',
+    icon: 'warning',
+    confirmButtonText:'Ok'
+    });
+}
 });

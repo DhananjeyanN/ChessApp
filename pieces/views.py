@@ -81,38 +81,68 @@ def index(request, game_id):
     return render(request, 'index.html', context={'gameplay': gameplay, 'gameplay_id':game_id, 'is_white':is_white})
 
 
+# @login_required
+# @api_view(['POST'])
+# @csrf_exempt
+# def join_game(request):
+#     player = get_object_or_404(Player, user=request.user)
+#     all_gameplays = GamePlay.objects.filter(completed=False)
+#     in_game = False
+#     previous_game_id = None
+#     for game in all_gameplays:
+#         if game.white_player == player or game.black_player == player:
+#             in_game = True
+#             previous_game_id = game.id
+#     if not in_game:
+#         if player.is_white:
+#             game = Game()
+#             game.board.initialize_board()
+#             gameplay = GamePlay()
+#             gameplay.white_player = player
+#             gameplay.save_game(game=game)
+#             gameplay.save()
+#             return JsonResponse({'status': 'initialized_game', 'gameplay_id': gameplay.id}, status=200)
+#         else:
+#             gameplay = GamePlay.objects.filter(is_ready=False).first()
+#             if gameplay:
+#                 gameplay.black_player = player
+#                 gameplay.is_ready = True
+#                 gameplay.save()
+#                 return JsonResponse({'status': 'joined_game', 'gameplay_id': gameplay.id}, status=200)
+#             else:
+#                 return JsonResponse({'status': 'no_game_found'}, status=400)
+#     else:
+#         return JsonResponse({'status': 'previous_game_found', 'gameplay_id': previous_game_id}, status=200)
+
 @login_required
 @api_view(['POST'])
 @csrf_exempt
 def join_game(request):
     player = get_object_or_404(Player, user=request.user)
-    all_gameplays = GamePlay.objects.filter(completed=False)
-    in_game = False
-    previous_game_id = None
-    for game in all_gameplays:
-        if game.white_player == player or game.black_player == player:
-            in_game = True
-            previous_game_id = game.id
-    if not in_game:
-        if player.is_white:
-            game = Game()
-            game.board.initialize_board()
-            gameplay = GamePlay()
-            gameplay.white_player = player
-            gameplay.save_game(game=game)
-            gameplay.save()
-            return JsonResponse({'status': 'initialized_game', 'gameplay_id': gameplay.id}, status=200)
-        else:
-            gameplay = GamePlay.objects.filter(is_ready=False).first()
-            if gameplay:
-                gameplay.black_player = player
-                gameplay.is_ready = True
-                gameplay.save()
-                return JsonResponse({'status': 'joined_game', 'gameplay_id': gameplay.id}, status=200)
-            else:
-                return JsonResponse({'status': 'no_game_found'}, status=400)
+    open_game = GamePlay.objects.filter(black_player = None)
+    prev_game_as_b = GamePlay.objects.filter(black_player = player, completed=False)
+    prev_game_as_w = GamePlay.objects.filter(white_player = player, completed=False)
+    if prev_game_as_b:
+        return JsonResponse({'status': 'previous_game_found', 'gameplay_id': prev_game_as_b[0].id}, status=200)
+    elif prev_game_as_w:
+        return JsonResponse({'status': 'previous_game_found', 'gameplay_id': prev_game_as_w[0].id}, status=200)
+    if open_game:
+        open_game = open_game[0]
+        open_game.black_player = player
+        open_game.is_ready = True
+        open_game.save()
+        return JsonResponse({'status': 'joined_game', 'gameplay_id': open_game.id}, status=200)
     else:
-        return JsonResponse({'status': 'previous_game_found', 'gameplay_id': previous_game_id}, status=200)
+        game = Game()
+        game.board.initialize_board()
+        gameplay = GamePlay()
+        gameplay.white_player = player
+        gameplay.save_game(game=game)
+        gameplay.save()
+        return JsonResponse({'status': 'initialized_game', 'gameplay_id': gameplay.id}, status=200)
+
+
+
 
 
 @login_required

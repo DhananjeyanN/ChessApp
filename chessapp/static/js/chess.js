@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to fetch game state:', error);
         }
     }
-//    dd
+
     async function pollGameState() {
         const gamestate = await fetchGameState();
         if (gamestate && gamestate !== lastGameState) {
@@ -193,7 +193,7 @@ function checkAlert(checkedKing) {
             const response = await fetch('/move/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
-                body: JSON.stringify({ source, dest, is_white })
+                body: JSON.stringify({ source, dest, is_white, gameplay_id })
             });
 
             const data = await response.json();

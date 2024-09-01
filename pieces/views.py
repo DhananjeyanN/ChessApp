@@ -9,10 +9,7 @@ from rest_framework.response import Response
 from .models import GamePlay, Player
 from .serializers import MoveSerializer
 
-gameplay = None
 
-
-# Create your views here.
 @csrf_exempt
 @api_view(['POST'])
 @login_required
@@ -26,24 +23,24 @@ def play_game(request):
         gameplay.save_game(game=game)
         return Response({'status': 'Success', 'gameplay_id': gameplay.id}, status=200)
 
+
 @login_required()
 def get_game_state(request, game_id):
     gameplay = get_object_or_404(GamePlay, id=game_id)
     return JsonResponse({'status':'success', 'game_state':gameplay.game_state})
 
+
 @csrf_exempt
 @api_view(['POST'])
 def make_move(request):
-    print(request.data)
     serializer = MoveSerializer(data=request.data)
     if serializer.is_valid():
         current_player = Player.objects.filter(user=request.user)[0]
         source = tuple(serializer.validated_data['source'])
         dest = tuple(serializer.validated_data['dest'])
-        print(source, dest)
-        gameplay = GamePlay.objects.latest('id')
+        gameplay_id = int(request.data['gameplay_id'])
+        gameplay = get_object_or_404(GamePlay, id=gameplay_id)
         game_instance = gameplay.load_game()
-        game_instance.board.print_board()
         piece_color = game_instance.board.board[source[0]][source[1]].get_piece().get_color()
         w_p = gameplay.white_player
         if current_player == w_p:
@@ -65,11 +62,6 @@ def make_move(request):
     return Response(serializer.errors, status=400)
 
 
-@api_view(['GET'])
-def check_game_state(request):
-    pass
-
-
 def index(request, game_id):
     gameplay = GamePlay.objects.get(id=game_id)
     player = Player.objects.filter(user=request.user)
@@ -80,39 +72,6 @@ def index(request, game_id):
     print(is_white, 'IS_WHITE')
     return render(request, 'index.html', context={'gameplay': gameplay, 'gameplay_id':game_id, 'is_white':is_white})
 
-
-# @login_required
-# @api_view(['POST'])
-# @csrf_exempt
-# def join_game(request):
-#     player = get_object_or_404(Player, user=request.user)
-#     all_gameplays = GamePlay.objects.filter(completed=False)
-#     in_game = False
-#     previous_game_id = None
-#     for game in all_gameplays:
-#         if game.white_player == player or game.black_player == player:
-#             in_game = True
-#             previous_game_id = game.id
-#     if not in_game:
-#         if player.is_white:
-#             game = Game()
-#             game.board.initialize_board()
-#             gameplay = GamePlay()
-#             gameplay.white_player = player
-#             gameplay.save_game(game=game)
-#             gameplay.save()
-#             return JsonResponse({'status': 'initialized_game', 'gameplay_id': gameplay.id}, status=200)
-#         else:
-#             gameplay = GamePlay.objects.filter(is_ready=False).first()
-#             if gameplay:
-#                 gameplay.black_player = player
-#                 gameplay.is_ready = True
-#                 gameplay.save()
-#                 return JsonResponse({'status': 'joined_game', 'gameplay_id': gameplay.id}, status=200)
-#             else:
-#                 return JsonResponse({'status': 'no_game_found'}, status=400)
-#     else:
-#         return JsonResponse({'status': 'previous_game_found', 'gameplay_id': previous_game_id}, status=200)
 
 @login_required
 @api_view(['POST'])
@@ -140,9 +99,6 @@ def join_game(request):
         gameplay.save_game(game=game)
         gameplay.save()
         return JsonResponse({'status': 'initialized_game', 'gameplay_id': gameplay.id}, status=200)
-
-
-
 
 
 @login_required
@@ -197,7 +153,6 @@ def remove_user_from_queue(request):
 def close_game(request):
     game_w = GamePlay.objects.filter(white_player=Player.objects.get(user=request.user), is_ready=True, completed = False)
     game_b = GamePlay.objects.filter(black_player=Player.objects.get(user=request.user), is_ready=True, completed = False)
-    print(game_w, game_b)
     if game_w:
         game = game_w[0]
     elif game_b:

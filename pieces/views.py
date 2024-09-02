@@ -30,6 +30,14 @@ def get_game_state(request, game_id):
     return JsonResponse({'status':'success', 'game_state':gameplay.game_state})
 
 
+@login_required()
+@csrf_exempt
+@api_view(['POST'])
+def get_messages(request):
+    gameplay_id = request.data['gameplay_id']
+
+
+@login_required()
 @csrf_exempt
 @api_view(['POST'])
 def make_move(request):
@@ -43,6 +51,7 @@ def make_move(request):
         game_instance = gameplay.load_game()
         piece_color = game_instance.board.board[source[0]][source[1]].get_piece().get_color()
         w_p = gameplay.white_player
+        b_p = gameplay.black_player
         if current_player == w_p:
             current_player_color = 'white'
         else:
@@ -52,11 +61,27 @@ def make_move(request):
                 gameplay.save_game(game=game_instance)
                 game_instance.board.print_board()
                 if game_instance.checkmate:
+                    if game_instance.turn == 'white':
+                        w_p.is_winner = True
+                        w_p.save()
+                    else:
+                        b_p.is_winner = True
+                        b_p.save()
                     gameplay.completed = True
                     gameplay.save()
-                return Response({'status': 'success', 'check':game_instance.check, 'checkmate':game_instance.checkmate, 'checked_king':game_instance.turn}, status=200)
+                if game_instance.check:
+                    if game_instance.turn == 'white':
+                        w_p.in_check = True
+                        w_p.save()
+                    else:
+                        b_p.in_check = True
+                        b_p.save()
+                else:
+                    w_p.in_check = False
+                    b_p.in_check = False
+                return Response({'status': 'success'}, status=200)
             else:
-                return Response({'status': 'fail', 'check':game_instance.check, 'checkmate':game_instance.checkmate, 'checked_king':game_instance.turn}, status=400)
+                return Response({'status': 'fail'}, status=400)
         else:
             return Response({'status': 'fail'}, status=400)
     return Response(serializer.errors, status=400)

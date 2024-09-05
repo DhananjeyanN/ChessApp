@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (data.status === 'loading') {
             leaveGame.style.display = 'inline-block'
             message.style.display = 'block'
-            waitForOponent(gameplay_id)
+            waitForOpponent(gameplay_id)
         }
     }
 
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = `/game_page/${gameplay_id}`
         }
         else if (data.status === 'initialized_game') {
-            waitForOponent(gameplay_id)
+            waitForOpponent(gameplay_id)
             joinGame.style.display = 'none'
             leaveGame.style.display = 'inline-block'
             message.style.display = 'block'
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function waitForOponent(gameplay_id){
+    async function waitForOpponent(gameplay_id){
         const interval = setInterval(async()=>{
             const response = await fetch('/check_status/', {method:'POST', headers:{'Content-Type': 'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({gameplay_id:gameplay_id})});
             if (!response) {

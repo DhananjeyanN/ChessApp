@@ -11,6 +11,7 @@ urlpatterns = [
     path('close_game/', views.close_game, name='close_game'),
     path('leave_queue/', views.remove_user_from_queue, name='leave_queue'),
     path('check_status/', views.check_status, name='check_status'),
+    path('get_messages/', views.get_messages, name='get_messages'),
     path('', views.home, name='home')
     # path('check/<str:color>/', views.check, name='check')
 ]

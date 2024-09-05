@@ -3,11 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const board = document.getElementById('Board');
     const gameplay_id = document.getElementById('gameplay_id').value;
     const is_white = document.getElementById('is_white').value;
+    const blackCheck = document.getElementById('black-check');
+    const blackWon = document.getElementById('black-won');
+    const whiteCheck = document.getElementById('white-check');
+    const whiteWon = document.getElementById('white-won');
     var boardData = null;
     const pollInterval = 1000; // Poll every 3 seconds
     let lastGameState = null;
 
-        function getColor(x) {
+    function getColor(x) {
         if (x < 2) return 'white';
         else if (x > 5) return 'black';
         return null;
@@ -17,6 +21,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!pieceType) return '';
         return `/static/images/${color}-${pieceType.toLowerCase()}.png`;
     }
+
+    async function getMessage() {
+        const response = await fetch('/get_messages/', {method:'POST', headers:{'Content-Type': 'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({gameplay_id:gameplay_id})})
+
+        if (!response.ok) {
+                console.log('Failed to update Messages');
+                return
+            }
+
+        const data = await response.json()
+        console.log(data, 'DATAAA')
+        my_color = data.color
+
+        if (data.w_is_winner) {
+        console.log('W_IS_WINNER')
+        whiteCheck.style.display = 'none';
+        whiteWon.style.display = 'none';
+        blackCheck.style.display = 'none';
+        blackWon.style.display = 'block';
+        }
+        else if (data.w_in_check){
+        console.log('W_IS_CHECK')
+        whiteCheck.style.display = 'block';
+        whiteWon.style.display = 'none';
+        blackCheck.style.display = 'none';
+        blackWon.style.display = 'none';
+        }
+        else if (data.b_is_winner){
+        console.log('B_IS_WINNER')
+        whiteCheck.style.display = 'none';
+        whiteWon.style.display = 'block';
+        blackCheck.style.display = 'none';
+        blackWon.style.display = 'none';
+        }
+        else if (data.b_in_check){
+        console.log('B_IS_CHECK')
+        whiteCheck.style.display = 'none';
+        whiteWon.style.display = 'none';
+        blackCheck.style.display = 'block';
+        blackWon.style.display = 'none';
+        }
+        else {
+        whiteCheck.style.display = 'none';
+        whiteWon.style.display = 'none';
+        blackCheck.style.display = 'none';
+        blackWon.style.display = 'none';
+        }
+    }
+
+
+
     async function fetchGameState() {
         try {
             const url = `/game_page/get_game_state/${gameplay_id}`;
@@ -27,7 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const data = await response.json();
             return data.game_state;
-        } catch (error) {
+        }
+        catch (error) {
             console.error('Failed to fetch game state:', error);
         }
     }
@@ -217,6 +273,7 @@ function checkAlert(checkedKing) {
 
     // Start polling the server for game state updates
     setInterval(pollGameState, pollInterval);
+    setInterval(getMessage, pollInterval);
 
     // Initialize the board when the page loads
     initializeBoard();

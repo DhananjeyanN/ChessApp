@@ -34,3 +34,10 @@ img {
 .piece {
     cursor: pointer;
 }
+
+h1 {
+color:gold;
+text-align:center;
+padding:5px;
+border:dotted 2px;
+}

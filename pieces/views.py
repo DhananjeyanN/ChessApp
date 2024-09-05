@@ -29,12 +29,25 @@ def get_game_state(request, game_id):
     gameplay = get_object_or_404(GamePlay, id=game_id)
     return JsonResponse({'status':'success', 'game_state':gameplay.game_state})
 
-
 @login_required()
 @csrf_exempt
 @api_view(['POST'])
 def get_messages(request):
+    player = Player.objects.filter(user=request.user)[0]
     gameplay_id = request.data['gameplay_id']
+    print(gameplay_id, 'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
+    gameplay = get_object_or_404(GamePlay, id=gameplay_id)
+    if player == gameplay.white_player:
+        color = 'white'
+    else:
+        color = 'black'
+    w_in_check = gameplay.white_player_in_check
+    w_is_winner = gameplay.white_player_is_winner
+    b_in_check = gameplay.black_player_in_check
+    b_is_winner = gameplay.black_player_is_winner
+    print(b_in_check)
+
+    return JsonResponse({'status':'success', 'w_in_check':w_in_check, 'w_is_winner':w_is_winner, 'b_in_check':b_in_check, 'b_is_winner':b_is_winner, 'color':color})
 
 
 @login_required()
@@ -62,23 +75,26 @@ def make_move(request):
                 game_instance.board.print_board()
                 if game_instance.checkmate:
                     if game_instance.turn == 'white':
-                        w_p.is_winner = True
-                        w_p.save()
+                        gameplay.white_player_is_winner = True
+                        gameplay.save()
                     else:
-                        b_p.is_winner = True
-                        b_p.save()
+                        gameplay.black_player_is_winner = True
+                        gameplay.save()
                     gameplay.completed = True
                     gameplay.save()
+                print('CHECCCKKKK',game_instance.check)
                 if game_instance.check:
+                    print('SOMEONE IN CHECK')
                     if game_instance.turn == 'white':
-                        w_p.in_check = True
-                        w_p.save()
+                        gameplay.white_player_in_check = True
+                        gameplay.save()
                     else:
-                        b_p.in_check = True
-                        b_p.save()
+                        gameplay.black_player_in_check = True
+                        gameplay.save()
                 else:
-                    w_p.in_check = False
-                    b_p.in_check = False
+                    gameplay.white_player_in_check = False
+                    gameplay.black_player_in_check = False
+                    gameplay.save()
                 return Response({'status': 'success'}, status=200)
             else:
                 return Response({'status': 'fail'}, status=400)

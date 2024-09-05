@@ -8,6 +8,10 @@ class GamePlay(models.Model):
     game_state = models.TextField()
     white_player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='white',blank=True, null=True)
     black_player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='black',blank=True, null=True)
+    white_player_in_check = models.BooleanField(default=False)
+    white_player_is_winner = models.BooleanField(default=False)
+    black_player_in_check = models.BooleanField(default=False)
+    black_player_is_winner = models.BooleanField(default=False)
     is_ready = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
 

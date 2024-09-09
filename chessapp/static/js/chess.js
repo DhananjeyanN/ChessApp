@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const whiteCheck = document.getElementById('white-check');
     const whiteWon = document.getElementById('white-won');
     var boardData = null;
-    const pollInterval = 1000; // Poll every 3 seconds
+    const pollInterval = 1000; // Poll every seconds
     let lastGameState = null;
 
     function getColor(x) {

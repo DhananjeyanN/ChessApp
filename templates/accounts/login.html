@@ -1,13 +1,14 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 {% block content %}
 <div class = 'reg-form container text-center'>
-    <h1 class="text-white" style="padding-bottom:40px;">
+    <h1 class="text-gold" style="padding:10px; margin:10px;">
     Login
     </h1>
     <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
-        <div class="form-group text-center" style="color:white;">
-        {{ form.as_p }}
+        <div class="form-group text-center" style="color:gold;">
+        {% crispy form %}
         </div>
 
         <div class = 'form-row'>

@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+#postgress port 5432
 
 # Application definition
 
@@ -41,6 +42,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'channels',
+    'crispy_forms',
+    'crispy_bootstrap5',
 ]
 
 ASGI_APPLICATION = 'chessapp.asgi.application'
@@ -89,8 +92,12 @@ WSGI_APPLICATION = 'chessapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ChessDB',
+        'USER':'postgres',
+        'PASSWORD': 'Jicker1923',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -143,3 +150,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
+
+try:
+        from .local_settings import *
+except ImportError:
+        pass

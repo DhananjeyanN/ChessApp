@@ -16,6 +16,13 @@
     <input type="hidden" id="gameplay_id" value="{{ gameplay_id }}">
     <input type="hidden" id="is_white" value="{{ is_white }}">
     <div class="Board" id="Board"></div>
+
+    <div id = 'promotion_choices' style="display:none;">
+        <button id="queen">Queen</button>
+        <button id="knight">Knight</button>
+        <button id="rook">Rook</button>
+        <button id="bishop">Bishop</button>
+    </div>
     <script> var csrftoken = "{{ csrf_token|escapejs }}";</script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/chess.js' %}"></script>

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-n7e%29sf9sbasv@)mvzo!1ny+l-5bc*3gct(*6lomaj4by#1r5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 #postgress port 5432
 
@@ -154,7 +154,7 @@ LOGOUT_REDIRECT_URL = 'home'
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
-try:
-        from .local_settings import *
-except ImportError:
-        pass
+# try:
+#         from .local_settings import *
+# except ImportError:
+#         pass

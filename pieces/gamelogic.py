@@ -107,14 +107,13 @@ class Piece:
 
     def move(self, board: 'Board', source: tuple, dest: tuple, log: 'BoardLog') -> bool:
         r_obj = self.is_legit_move(board=board, source=source, dest=dest, log=log)
-        typ = type(r_obj)
-        if typ == bool and r_obj is True:
+        if r_obj == 'VALID MOVE GET PIECE FOR PROMOTION':
             log.add_log(source=source, dest=dest, piece=self)
             board.move_piece(start=source, stop=dest, piece=self)
-            return True
-        elif typ in [Queen, Bishop, Knight, Rook]:
+            return 'VALID MOVE GET PIECE FOR PROMOTION'
+        elif r_obj == True:
             log.add_log(source=source, dest=dest, piece=self)
-            board.move_piece(start=source, stop=dest, piece=r_obj)
+            board.move_piece(start=source, stop=dest, piece=self)
             return True
         return False
 
@@ -152,22 +151,23 @@ class Pawn(Piece):
         if x1 == x2:
             # Single step forward
             if y2 == y1 + direction and board.board[y2][x2].is_empty():
+                print('JQJQJQQJKQJKQJQKQJKQJQKQJKQJKQQJKQJKQJQKQJKQJQKQJKQ')
                 if y2 == end_row:
-                    self.promote(source, dest, board, log)
+                    print('VALID MOVE GET PIECE FOR PROMOTION')
+                    return 'VALID MOVE GET PIECE FOR PROMOTION'
                 return True
             # Double step from start row
-            if y1 == start_row and y2 == y1 + 2 * direction and board.board[y2][x2].is_empty() and \
-                    board.board[y1 + direction][x1].is_empty():
+            if y1 == start_row and y2 == y1 + 2 * direction and board.board[y2][x2].is_empty() and board.board[y1 + direction][x1].is_empty():
                 return True
 
         # Captures
         if abs(x2 - x1) == 1 and y2 == y1 + direction:
-            if not board.board[y2][x2].is_empty() and board.board[y2][
-                x2].get_piece().get_color() != self.get_color():
+            if not board.board[y2][x2].is_empty() and board.board[y2][x2].get_piece().get_color() != self.get_color():
+                print('JQJQJQQJKQJKQJQKQJKQJQKQJKQJKQQJKQJKQJQKQJKQJQKQJKQ')
                 if y2 == end_row:
-                    self.promote(source, dest, board, log)
+                    print('VALID MOVE GET PIECE FOR PROMOTION')
+                    return 'VALID MOVE GET PIECE FOR PROMOTION'
                 return True
-
         return False
 
     def promote(self, source: tuple, dest: tuple, board: 'Board', log: 'BoardLog') -> None:
@@ -175,24 +175,6 @@ class Pawn(Piece):
         promotion_piece = Queen(color=self.get_color(), url=f'images/{self.get_color()}-queen.png')
         board.set_piece(dest, promotion_piece)
         log.add_promotion(self, promotion_piece, dest)
-
-    def can_be_promoted(self, dest: tuple, board: 'Board', log: 'BoardLog') -> bool:
-        y, x = dest
-        if (y == 7 and self.get_color() == 'black') or (y == 0 and self.get_color() == 'white'):
-            piece_choice = input('Enter Piece Choice: ')
-            if piece_choice == 'queen':
-                p = Queen(color=self.get_color(), url=f'images/{self.get_color()}-queen.png')
-            elif piece_choice == 'knight':
-                p = Knight(color=self.get_color(), url=f'images/{self.get_color()}-knight.png')
-            elif piece_choice == 'bishop':
-                p = Bishop(color=self.get_color(), url=f'images/{self.get_color()}-bishop.png')
-            elif piece_choice == 'rook':
-                p = Rook(color=self.get_color(), url=f'images/{self.get_color()}-rook.png')
-            else:
-                return False
-            log.add_promotion(piece=board[y][x].get_piece(), cord=dest, new_piece=p)
-            return p
-        return False
 
     def can_en_passent(self) -> bool:
         # Implement en passant logic here
@@ -491,6 +473,7 @@ class Game:
         self.turn = 'white'
         self.checkmate = False
         self.check = False
+        self.promotion_state = False
 
     def serialize(self):
         print(self.log.serialize(), 'LOG')
@@ -499,7 +482,8 @@ class Game:
             'log': self.log.serialize(),
             'turn': self.turn,
             'checkmate': self.checkmate,
-            'check': self.check
+            'check': self.check,
+            'promotion_state': self.promotion_state
         })
 
     @staticmethod
@@ -510,6 +494,7 @@ class Game:
         turn = data['turn']
         checkmate = data['checkmate']
         check = data['check']
+        promotion_state = data['promotion_state']
         game = Game()
         game.turn = turn
         game.checkmate = checkmate
@@ -574,7 +559,10 @@ class Game:
     def move(self, source, dest):
         piece = self.board.get_piece(source)
         if piece and piece.get_color() == self.turn:
-            if piece.move(self.board, source, dest, self.log):
+            piece_move = piece.move(self.board, source, dest, self.log)
+            if piece_move == 'VALID MOVE GET PIECE FOR PROMOTION':
+                return 'VALID MOVE GET PIECE FOR PROMOTION'
+            elif piece_move:
                 if self.is_in_check(self.turn):
                     print(f"Move places {self.turn} in check! Illegal move.")
                     self.board.move_piece(dest, source, piece)

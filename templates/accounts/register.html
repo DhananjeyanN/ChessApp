@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 {% block content %}
 <div class = 'reg-form'>
-    <h1>Register</h1>
-    <form method="post" action="{% url 'register' %}" class="form-group" style="color:gold;">
+    <h1>
+    Register
+    </h1>
+    <form method="post" action="{% url 'register' %}">
         {% csrf_token %}
-        {% crispy form %}
+        {{ form.as_p }}
         <div class = 'form-field'>
             <input type = 'submit' value = 'submit'>
         </div>

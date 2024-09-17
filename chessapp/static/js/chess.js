@@ -7,8 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const blackWon = document.getElementById('black-won');
     const whiteCheck = document.getElementById('white-check');
     const whiteWon = document.getElementById('white-won');
+    const promotion_choices = document.getElementById('promotion_choices');
+    const promote_to_queen = document.getElementById('queen');
+    const promote_to_knight = document.getElementById('knight');
+    const promote_to_bishop = document.getElementById('bishop');
+    const promote_to_rook = document.getElementById('rook');
+
+
     var boardData = null;
-    const pollInterval = 1000; // Poll every seconds
+    const pollInterval = 2000; // Poll every seconds
     let lastGameState = null;
 
     function getColor(x) {
@@ -262,7 +269,11 @@ function checkAlert(checkedKing) {
                     checkmateAlert(data.winner);
                 }
                 return true;
-            } else {
+            }
+            else if (data.status === 'get_pawn_promotion_piece') {
+            promotion_choices.style.display = 'block'
+            }
+            else {
                 return false;
             }
         } catch (error) {

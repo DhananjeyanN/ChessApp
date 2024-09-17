@@ -70,7 +70,12 @@ def make_move(request):
         else:
             current_player_color = 'black'
         if current_player_color == piece_color:
-            if game_instance.move(source, dest):
+            game_instance_move = game_instance.move(source, dest)
+            print(game_instance_move, 'GAME INSTANCE MOVE')
+            if game_instance_move == 'VALID MOVE GET PIECE FOR PROMOTION':
+                print('PROOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOMOTEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
+                return Response({'status': 'get_pawn_promotion_piece'}, status=200)
+            elif game_instance_move:
                 gameplay.save_game(game=game_instance)
                 game_instance.board.print_board()
                 if game_instance.checkmate:

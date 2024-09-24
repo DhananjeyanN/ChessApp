@@ -29,13 +29,13 @@ def get_game_state(request, game_id):
     gameplay = get_object_or_404(GamePlay, id=game_id)
     return JsonResponse({'status':'success', 'game_state':gameplay.game_state})
 
+
 @login_required()
 @csrf_exempt
 @api_view(['POST'])
 def get_messages(request):
     player = Player.objects.filter(user=request.user)[0]
     gameplay_id = request.data['gameplay_id']
-    print(gameplay_id, 'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
     gameplay = get_object_or_404(GamePlay, id=gameplay_id)
     if player == gameplay.white_player:
         color = 'white'
@@ -45,9 +45,44 @@ def get_messages(request):
     w_is_winner = gameplay.white_player_is_winner
     b_in_check = gameplay.black_player_in_check
     b_is_winner = gameplay.black_player_is_winner
-    print(b_in_check)
+    game_instance = gameplay.load_game()
+    if color != game_instance.turn:
+        promotion_state = game_instance.promotion_state
+    else:
+        promotion_state = False
+    return JsonResponse({'status':'success', 'w_in_check':w_in_check, 'w_is_winner':w_is_winner, 'b_in_check':b_in_check, 'b_is_winner':b_is_winner, 'color':color, 'promotion_state':promotion_state})
 
-    return JsonResponse({'status':'success', 'w_in_check':w_in_check, 'w_is_winner':w_is_winner, 'b_in_check':b_in_check, 'b_is_winner':b_is_winner, 'color':color})
+
+@login_required()
+@csrf_exempt
+@api_view(['POST'])
+def promote(request):
+    player = Player.objects.filter(user=request.user)[0]
+    choosen_piece = request.data['pieceChoice']
+    gameplay_id = int(request.data['gameplay_id'])
+    gameplay = get_object_or_404(GamePlay, id=gameplay_id)
+    game_instance = gameplay.load_game()
+    turn = game_instance.turn
+
+    if player == gameplay.white_player:
+        player_color = 'white'
+    elif player == gameplay.black_player:
+        player_color = 'black'
+    else:
+        return Response({'status':'fail'}, status=400)
+
+    if player_color != turn:
+        if game_instance.promotion_state:
+            if game_instance.make_promotion(p_type=choosen_piece):
+                gameplay.save_game(game_instance)
+                return Response({'status': 'success'}, status=200)
+            else:
+                return Response({'status': 'fail'}, status=400)
+        return Response({'status': 'fail'}, status=400)
+    else:
+        return Response({'status': 'fail'}, status=400)
+
+
 
 
 @login_required()
@@ -71,9 +106,8 @@ def make_move(request):
             current_player_color = 'black'
         if current_player_color == piece_color:
             game_instance_move = game_instance.move(source, dest)
-            print(game_instance_move, 'GAME INSTANCE MOVE')
             if game_instance_move == 'VALID MOVE GET PIECE FOR PROMOTION':
-                print('PROOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOMOTEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
+                gameplay.save_game(game=game_instance)
                 return Response({'status': 'get_pawn_promotion_piece'}, status=200)
             elif game_instance_move:
                 gameplay.save_game(game=game_instance)
@@ -87,9 +121,7 @@ def make_move(request):
                         gameplay.save()
                     gameplay.completed = True
                     gameplay.save()
-                print('CHECCCKKKK',game_instance.check)
                 if game_instance.check:
-                    print('SOMEONE IN CHECK')
                     if game_instance.turn == 'white':
                         gameplay.white_player_in_check = True
                         gameplay.save()
@@ -111,11 +143,9 @@ def make_move(request):
 def index(request, game_id):
     gameplay = GamePlay.objects.get(id=game_id)
     player = Player.objects.filter(user=request.user)
-    print(player)
     is_white = False
     if gameplay.white_player == player[0]:
         is_white = True
-    print(is_white, 'IS_WHITE')
     return render(request, 'index.html', context={'gameplay': gameplay, 'gameplay_id':game_id, 'is_white':is_white})
 
 
@@ -203,10 +233,8 @@ def close_game(request):
         game = game_w[0]
     elif game_b:
         game = game_b[0]
-    print(game, game.completed,game.id, 'GAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
     game.completed = True
     game.save()
-    print(game, game.completed,game.id, 'GAMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
     return JsonResponse({'status': 'game_closed'}, status=200)
 
 
@@ -220,5 +248,4 @@ def home(request):
             game_exists = True
             messages.warning(request, 'Game is Waiting for Opponent')
             gameplay_id = gameplay[0].id
-    print(game_exists, gameplay_id)
     return render(request, 'home.html', context={'game_exists': game_exists})

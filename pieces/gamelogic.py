@@ -28,13 +28,9 @@ class Square:
 
     @staticmethod
     def deserialize(data):
-        print('HELLO')
         data = json.loads(data)
         square = Square()
-        print(data,'DATA')
         if data['piece'] is not None:
-            print('TEXT')
-            print(data['piece'], Piece.deserialize(data['piece']))
             square.set_piece(Piece.deserialize(data['piece']))
         square.color = data['color']
         return square
@@ -81,7 +77,6 @@ class BoardLog:
 
     @staticmethod
     def deserialize(data):
-        print(data, 'DDAATTAA')
         # data = json.loads(data)
         logs = data['logs']
         captured_white = data['captured_white']
@@ -127,7 +122,6 @@ class Piece:
     def deserialize(data):
         data = json.loads(data)
         piece_class = globals()[data['type']]
-        print(piece_class)
         if piece_class and issubclass(piece_class, Piece):
             return piece_class(data['color'], url='')
         else:
@@ -151,9 +145,7 @@ class Pawn(Piece):
         if x1 == x2:
             # Single step forward
             if y2 == y1 + direction and board.board[y2][x2].is_empty():
-                print('JQJQJQQJKQJKQJQKQJKQJQKQJKQJKQQJKQJKQJQKQJKQJQKQJKQ')
                 if y2 == end_row:
-                    print('VALID MOVE GET PIECE FOR PROMOTION')
                     return 'VALID MOVE GET PIECE FOR PROMOTION'
                 return True
             # Double step from start row
@@ -163,9 +155,7 @@ class Pawn(Piece):
         # Captures
         if abs(x2 - x1) == 1 and y2 == y1 + direction:
             if not board.board[y2][x2].is_empty() and board.board[y2][x2].get_piece().get_color() != self.get_color():
-                print('JQJQJQQJKQJKQJQKQJKQJQKQJKQJKQQJKQJKQJQKQJKQJQKQJKQ')
                 if y2 == end_row:
-                    print('VALID MOVE GET PIECE FOR PROMOTION')
                     return 'VALID MOVE GET PIECE FOR PROMOTION'
                 return True
         return False
@@ -339,9 +329,20 @@ class King(Piece):
         super().__init__(color, url)
 
     def is_legit_move(self, source: tuple, dest: tuple, board: 'Board', log: 'BoardLog') -> bool:
+        board_obj = board
         board = board.board
         y1, x1 = source
         y2, x2 = dest
+        print(x1,y1,' ',x2,y2, 'SOURCE','DEST')
+        d = x1-x2
+        castling_rook_pos = None
+        if abs(d) != d:
+            step = 1
+        else:
+            step = -1
+        step_x = x1
+        step_x2 = x1
+
         if (abs(x1 - x2) == 1 and abs(y1 - y2) == 0) or (abs(y1 - y2) == 1 and abs(x1 - x2) == 0) or (abs(x1 - x2) == 1 and abs(y1 - y2) == 1):
             if not board[y2][x2].is_empty():
                 if board[y2][x2].get_piece().get_color() == self.get_color():
@@ -349,11 +350,78 @@ class King(Piece):
                 else:
                     log.add_capture(piece=board[y2][x2].get_piece())
             return True
+        elif abs(x1-x2)==2 and abs(y1 - y2) == 0:
+            print('CASTLING ATTEMPTED!!!')
+            for i in log.logs:
+                if i[0] == self:
+                    return False
+            print('KING HAS NOT MOVED YET!!!')
+            if abs(d) != d:
+                if self.get_color() == 'black':
+                    if not board[0][7].is_empty():
+                        castling_rook = board[0][7].get_piece()
+                        castling_rook_pos = (7,0)
+                        print('ROOK IS BLACK RIGHT')
+                    else:
+                        return False
+                else:
+                    if not board[7][7].is_empty():
+                        castling_rook = board[7][7].get_piece()
+                        castling_rook_pos = (7,7)
+                        print('ROOK IS WHITE RIGHT')
+                    else:
+                        return False
+            else:
+                if self.get_color() == 'black':
+                    if not board[0][0].is_empty():
+                        castling_rook = board[0][0].get_piece()
+                        castling_rook_pos = (0, 0)
+                        print('ROOK IS BLACK LEFT')
+                    else:
+                        return False
+                else:
+                    if not board[7][0].is_empty():
+                        castling_rook = board[7][0].get_piece()
+                        castling_rook_pos = (0, 7)
+                        print('ROOK IS WHITE LEFT')
+                    else:
+                        return False
+
+            if type(castling_rook) is Rook:
+                for i in log.logs:
+                    if i[0] == castling_rook:
+                        return False
+                print('ROOK HAS NOT MOVED YET!!!')
+            else:
+                return False
+
+            print(castling_rook_pos[0], 'CASTLING ROOK POS')
+            print(step)
+            while step_x + step != castling_rook_pos[0]:
+                step_x = step_x + step
+                print(step_x, 'step_x')
+                print(board[y1][step_x].is_empty())
+                if not board[y1][step_x].is_empty():
+                    return False
+            print('NO PIECES INBETWEEN KING AND ROOK!!!')
+            while step_x2 + step != castling_rook_pos[0]:
+                step_x2 = step_x2 + step
+                if self.is_in_check(cords=(step_x2, y1), board=board_obj, log=log):
+                    return False
+            print('IT WORKED!!!')
+            return True
+
         return False
 
-    def can_castle(self) -> bool:
-        # Implement castling logic here
-        pass
+    def is_in_check(self, cords, board, log) -> bool:
+        for row in range(8):
+            for col in range(8):
+                piece = board.get_piece((row,col))
+                if piece and piece.get_color() != self.get_color():
+                    print(row, col, piece)
+                    if piece.is_legit_move((col, row), cords, board, log):
+                        return True
+        return False
 
     def __str__(self) -> str:
         return f'{self.get_color()[0]}K'
@@ -474,16 +542,17 @@ class Game:
         self.checkmate = False
         self.check = False
         self.promotion_state = False
+        self.promotion_location = None
 
     def serialize(self):
-        print(self.log.serialize(), 'LOG')
         return json.dumps({
             'board': self.board.serialize(),
             'log': self.log.serialize(),
             'turn': self.turn,
             'checkmate': self.checkmate,
             'check': self.check,
-            'promotion_state': self.promotion_state
+            'promotion_state': self.promotion_state,
+            'promotion_location': self.promotion_location
         })
 
     @staticmethod
@@ -495,12 +564,15 @@ class Game:
         checkmate = data['checkmate']
         check = data['check']
         promotion_state = data['promotion_state']
+        promotion_location = data['promotion_location']
         game = Game()
         game.turn = turn
         game.checkmate = checkmate
         game.check = check
         game.board = board
         game.log = log
+        game.promotion_state = promotion_state
+        game.promotion_location = promotion_location
         return game
 
     def switch_turn(self):
@@ -556,11 +628,49 @@ class Game:
                     return (row, col)
         return None
 
+    def make_promotion(self,p_type):
+        color = self.board.get_piece(self.promotion_location).get_color()
+        if p_type == 'queen':
+            n_p = Queen(color=color, url=f'images/{color}-queen.png')
+        elif p_type == 'knight':
+            n_p = Knight(color=color, url=f'images/{color}-knight.png')
+        elif p_type == 'bishop':
+            n_p = Bishop(color=color, url=f'images/{color}-bishop.png')
+        elif p_type == 'rook':
+            n_p = Rook(color=color, url=f'images/{color}-rook.png')
+        else:
+            return False
+
+        self.board.set_piece(cord=self.promotion_location, piece=n_p)
+        self.log.add_log(source=self.promotion_location, dest=self.promotion_location, piece=n_p)
+        self.promotion_state = False
+        self.promotion_location = None
+        return True
+
+
     def move(self, source, dest):
+        if self.promotion_state == True:
+            return False
         piece = self.board.get_piece(source)
         if piece and piece.get_color() == self.turn:
             piece_move = piece.move(self.board, source, dest, self.log)
             if piece_move == 'VALID MOVE GET PIECE FOR PROMOTION':
+                print('IN MOVE')
+                self.promotion_state = True
+                self.promotion_location = dest
+                if self.is_in_check(self.turn):
+                    print(f"Move places {self.turn} in check! Illegal move.")
+                    self.board.move_piece(dest, source, piece)
+                    return False
+                self.switch_turn()
+                if self.is_checkmate(self.turn):
+                    print(f"Checkmate! {self.turn} loses.")
+                    self.checkmate = True
+                    print(self.serialize())
+                if self.is_in_check(self.turn):
+                    self.check = True
+                else:
+                    self.check = False
                 return 'VALID MOVE GET PIECE FOR PROMOTION'
             elif piece_move:
                 if self.is_in_check(self.turn):

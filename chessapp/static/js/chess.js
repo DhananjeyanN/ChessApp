@@ -13,9 +13,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const promote_to_bishop = document.getElementById('bishop');
     const promote_to_rook = document.getElementById('rook');
 
+    async function Promote(pieceChoice){
+        console.log('PROMOTING');
+        const response = await fetch('/promote/', {method:'POST', headers:{'Content-Type': 'application/json', 'X-CSRFToken': csrftoken}, body:JSON.stringify({gameplay_id:gameplay_id, pieceChoice:pieceChoice})});
+        if (!response.ok) {
+            console.error('Failed To Promote!!!', response.status);
+            return;
+        }
+        promotion_choices.style.display = 'none'
+    }
+
+    promote_to_queen.addEventListener('click',()=> {
+        Promote('queen')
+    })
+        promote_to_knight.addEventListener('click',()=> {
+        Promote('knight')
+    })
+        promote_to_bishop.addEventListener('click',()=> {
+        Promote('bishop')
+    })
+        promote_to_rook.addEventListener('click',()=> {
+        Promote('rook')
+    })
 
     var boardData = null;
-    const pollInterval = 2000; // Poll every seconds
+    const pollInterval = 3000; // Poll every seconds
     let lastGameState = null;
 
     function getColor(x) {
@@ -74,6 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
         whiteWon.style.display = 'none';
         blackCheck.style.display = 'none';
         blackWon.style.display = 'none';
+        }
+
+        if (data.promotion_state) {
+        console.log('IN PROMOTION STATE');
+        promotion_choices.style.display = 'inline-block';
+        }
+        else {
+        promotion_choices.style.display = 'none';
         }
     }
 
